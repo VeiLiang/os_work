@@ -1,0 +1,44 @@
+OS_SwitchFromInt:
+   0x80122af8: 0xe59f010c     LDR       r0, [pc, #0x10c]        ; [0x80122c0c] FIQ_STACK$$Base				r0 = FIQ_STACK
+   0x80122afc: 0xe3c00007     BIC       r0, r0, #7																			r0 = r0 & ~7;
+   0x80122b00: 0xe59f1108     LDR       r1, [pc, #0x108]        ; [0x80122c10] 0x817133dc (-2123287588)	r1 = 0x817133DC
+   0x80122b04: 0xe5911000     LDR       r1, [r1]																			r1 = 
+   0x80122b08: 0xe510201c     LDR       r2, [r0, #-0x1c]
+   0x80122b0c: 0xe3510000     CMP       r1, #0
+   0x80122b10: 0x0a000009     BEQ       0x80122b3c					; OS_SwitchFromInt_1
+   0x80122b14: 0xe5101004     LDR       r1, [r0, #-0x4]
+   0x80122b18: 0xe321f09f     MSR       CPSR_c, #159            ; 0x9f
+   0x80122b1c: 0xe92d0006     PUSH      {r1, r2}
+   0x80122b20: 0xe321f093     MSR       CPSR_c, #147            ; 0x93
+   0x80122b24: 0xe3c220bf     BIC       r2, r2, #191            ; 0xbf
+   0x80122b28: 0xe382201f     ORR       r2, r2, #31             ; 0x1f
+   0x80122b2c: 0xe59f10e0     LDR       r1, [pc, #0xe0]         ; [0x80122c14] 0x80122b50 (-2146292912)
+   0x80122b30: 0xe500201c     STR       r2, [r0, #-0x1c]
+   0x80122b34: 0xe5001004     STR       r1, [r0, #-0x4]
+   0x80122b38: 0xe12fff1e     BX        lr
+OS_SwitchFromInt_1:   
+   0x80122b3c: 0xe3c220bf     BIC       r2, r2, #191            ; 0xbf
+   0x80122b40: 0xe3822013     ORR       r2, r2, #19             ; 0x13
+   0x80122b44: 0xe59f10cc     LDR       r1, [pc, #0xcc]         ; [0x80122c18] 0x80122aec (-2146293012)
+   0x80122b48: 0xeafffff8     B         0x80122b30
+OS_SwitchAfterISR_ARM:
+   0x80122b4c: 0xe92d500f     PUSH      {r0-r3, r12, lr}
+   0x80122b50: 0xe59f00b0     LDR       r0, [pc, #0xb0]         ; [0x80122c08] OS_Global
+   0x80122b54: 0xebffffd6     BL        OS_Switch               ; 0x80122ab4
+   0x80122b58: 0xe5d01000     LDRB      r1, [r0]
+   0x80122b5c: 0xe2511001     SUBS      r1, r1, #1
+   0x80122b60: 0xe5c01000     STRB      r1, [r0]
+   0x80122b64: 0xe28d2018     ADD       r2, sp, #24             ; 0x18
+   0x80122b68: 0xe321f092     MSR       CPSR_c, #146            ; 0x92
+   0x80122b6c: 0xe8b20003     LDM       r2!, {r0, r1}
+   0x80122b70: 0xe16ff001     MSR       SPSR_fsxc, r1
+   0x80122b74: 0xe1a0e000     MOV       lr, r0
+   0x80122b78: 0xe321f09f     MSR       CPSR_c, #159            ; 0x9f
+   0x80122b7c: 0xe28dd008     ADD       sp, sp, #8
+   0x80122b80: 0xe8bd500c     POP       {r2, r3, r12, lr}
+   0x80122b84: 0xe28dd008     ADD       sp, sp, #8
+   0x80122b88: 0xe1a0100d     MOV       r1, sp
+   0x80122b8c: 0xe321f092     MSR       CPSR_c, #146            ; 0x92
+   0x80122b90: 0xe5110020     LDR       r0, [r1, #-0x20]
+   0x80122b94: 0xe511101c     LDR       r1, [r1, #-0x1c]
+   0x80122b98: 0xe25ef004     SUBS      pc, lr, #4

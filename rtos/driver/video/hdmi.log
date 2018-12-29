@@ -1,0 +1,379 @@
+-----------------------------------------------------
+Init HDMITX
+-----------------------------------------------------
+        00 01 02 03   04 05 06 07   08 09 0A 0B   0C 0D 0E 0F
+        -----------------------------------------------------
+[  0]   54 49 12 16 - 01 60 03 00 - 00 FC F8 F7 - 00 00 EC 08
+[ 10]   96 A0 E0 20 - 00 FF 82 XX - 00 74 E0 03 - 00 00 FF 00
+[ 20]   08 FFreg_usb_Power=0xf0
+USB 2.0 High Speed
+ 00 8C - 8F 27 F7 1F - 90 AEreg_usb_Power=0xf0
+USB 2.0 High Speed
+ 13 DF - 7C 6B FD A9
+[ 30]   7B E1 8E F9 - FD FF 7F 78 -reg_usb_Power=0xf0
+USB 2.0 High Speed
+ 3D FD B7 4E - 87 87 F9 AB
+        -----------------------------------------------------
+[ 40]   FF AB 57 00 - AF 2E 00 00 - 4A 22 C8 10 - 2A A5 00 FB
+[ 50]   90 3B B8 3B - D7 CD FE 38 - 11 43 03 FE - 00 95 B6 D8
+[ 60]   FF 10 88 18 - 94 00 00 00 - 00 30 00 FF - FF FF FF FF
+[ 70]   00 1C 02 00 - 80 00 B8 05 - B4 01 93 00 - 49 3C 18 04
+        -----------------------------------------------------
+[ 80]   9F 3F D9 3C - 10 3F 18 04 - 09 38 FF FF - FF 9C 00 00
+[ 90]   00 19 6A B4 - B4 B2 73 C6 - CF C2 40 6C - 19 EF E8 F7
+[ A0]   FF BB 13 CE - 40 0A 67 1C - 00 05 A7 77 - 9A C1 FB 39
+[ B0]   BE DF BF FF - FF FF FF FF - FF FF FF FF - FF FF FF 00
+        -----------------------------------------------------
+[ C0]   01 83 B9 08 - C0 04 03 FF - FF 00 00 FF - FF 03 03 FF
+[ D0]   00 DC 00 FF - FF FF FF 0D - 46 FF FF FF - FF FF FF FF
+[ E0]   D1 01 E4 10 - 00 00 00 00 - 00 FF FF FF - 7F FF 00 FF
+[ F0]   01 FF FF 18 - 00 02 FF FF - FF FF FF FF - FF FF FF FF
+        -----------------------------------------------------
+[130]   00 00 00 00 - 18 00 00 00 - F7 6F 75 FF - BF DC 6F C5
+[140]   57 BB EF DF - FF C6 EA FD - DA C7 84 36 - 1F 7E FD E3
+[150]   75 EF FB 69 - F3 4E AC FF - 10 08 00 00 - 00 57 00 00
+[160]   00 00 00 00 - 00 00 4E 91 - 00 00 00 00 - 00 71 D5 A1
+        -----------------------------------------------------
+[170]   D7 72 C7 76 - 19 EA F6 2A - AE 3F FD 13 - AA F8 FD F8
+[180]   B7 F0 7A AF - FF FF FF FF - FF FF 4E A2 - 7F AA E2 ED
+[190]   FF 00 00 00 - 00 FF FF FF - 00 00 FF FF - FF FF FF FF
+[1A0]   FF FF FF FF - FF FF FF FF - FF FF FF FF - FF FF FF FF
+        -----------------------------------------------------
+[1B0]   FF FF FF FF - FF F7 7E 8F - D1 EF FF EF - F9 BF FC F6
+[1C0]   FF FF FF FF - FF FF FF FF - FF FF FF FF - FF FF FF FF
+[1D0]   FF FF FF FF - FF FF FF FF - FF FF FF FF - FF FF FF FF
+[1E0]   FF FF FF FF - FF FF FF FF - FF FF FF FF - FF FF FF FF
+        -----------------------------------------------------
+[1F0]   FF FF FF FF - FF FF FF FF - FF FF FF FF - FF FF FF FF
+        -----------------------------------------------------
+REG_TX_SYS_STATUS = 0xEC 
+INT_Handler: reg6 = 3
+INT_Handler: reg7 = 0
+getHDMITX_EDIDBytes(): ReqCount = 32,bCurrOffset = 0
+getHDMITX_EDIDBytes(): ReqCount = 32,bCurrOffset = 32
+getHDMITX_EDIDBytes(): ReqCount = 32,bCurrOffset = 64
+getHDMITX_EDIDBytes(): ReqCount = 32,bCurrOffset = 96
+getHDMITX_EDIDBytes(): ReqCount = 32,bCurrOffset = 128
+getHDMITX_EDIDBytes(): ReqCount = 32,bCurrOffset = 160
+getHDMITX_EDIDBytes(): ReqCount = 32,bCurrOffset = 192
+getHDMITX_EDIDBytes(): ReqCount = 32,bCurrOffset = 224
+02 03 1C 71 49 01 03 12
+13 04 14 05 1F 10 23 09
+07 01 83 01 00 00 65 03
+0C 00 10 00 01 1D 00 72
+51 D0 1E 20 6E 28 55 00
+09 25 21 00 00 1E 01 1D
+00 BC 52 D0 1E 20 B8 28
+55 40 09 25 21 00 00 1E
+8C 0A D0 8A 20 E0 2D 10
+10 3E 96 00 09 25 21 00
+00 18 8C 0A D0 90 20 40
+31 20 0C 40 55 00 09 25
+21 00 00 18 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 EA
+VIC = 1, RxCapability.VDOMode[0]=02
+VIC = 3, RxCapability.VDOMode[0]=0A
+VIC = 18, RxCapability.VDOMode[2]=04
+VIC = 19, RxCapability.VDOMode[2]=0C
+VIC = 4, RxCapability.VDOMode[0]=1A
+VIC = 20, RxCapability.VDOMode[2]=1C
+VIC = 5, RxCapability.VDOMode[0]=3A
+VIC = 31, RxCapability.VDOMode[3]=80
+VIC = 16, RxCapability.VDOMode[2]=1D
+RxCapability.AUDDesCount = 1
+IEEEOUI = 00 0C 03 c03err = SUCCESS
+RxCapability.IEEEOUI = c03
+HPD change HDMITX_SetOutput();
+count = 1
+Mode change HDMITX_SetOutput();
+level = 1, ,bInputColorMode=30,bOutputColorMode=2,bHDMIMode=1
+hdmitx_SetCSCScale(BYTE bInputMode = 30,BYTE bOutputMode = 2)
+Input mode is RGB24
+Output mode is YUV444
+CSC = RGB2YUV 2 ITU709 16-235 reg73 <- 00
+reg74 <- 80
+reg75 <- 00
+reg76 <- B8
+reg77 <- 05
+reg78 <- B4
+reg79 <- 01
+reg7A <- 94
+reg7B <- 00
+reg7C <- 4A
+reg7D <- 3C
+reg7E <- 17
+reg7F <- 04
+reg80 <- 9F
+reg81 <- 3F
+reg82 <- D9
+reg83 <- 3C
+reg84 <- 10
+reg85 <- 3F
+reg86 <- 17
+reg87 <- 04
+hdmitx_SetupAFE()===================LOW
+ConfigAudioInfoFrm(2)
+T_AUDIO_LPCM
+        00 01 02 03   04 05 06 07   08 09 0A 0B   0C 0D 0E 0F
+        -----------------------------------------------------
+[  0]   54 49 12 16 - 01 60 00 00 - 00 7C F8 F7 - 1C 00 60 08
+[ 10]   91 A0 E0 20 - 00 FF 82 XX - 00 74 E0 03 - 00 00 FF 00
+[ 20]   00 FF 00 8C - 8F 27 F7 1F - 90 AE 13 DF - 7C 6B FD A9
+[ 30]   7B E1 8E F9 - FD FF 7F 78 - 3D FD B7 4E - 87 87 F9 AB
+        -----------------------------------------------------
+[ 40]   FF AB 57 00 - AF 2E 00 00 - 4A 22 C8 10 - 2A A5 00 FB
+[ 50]   90 3B B8 3B - D7 CD FE 38 - 15 43 03 FE - 00 95 B6 D8
+[ 60]   FF 00 18 18 - 1D 00 00 00 - 10 30 00 FF - FF FF FF FF
+[ 70]   01 1C 02 00 - 80 00 B8 05 - B4 01 94 00 - 4A 3C 17 04
+        -----------------------------------------------------
+[ 80]   9F 3F D9 3C - 10 3F 17 04 - 09 38 FF FF - FF 9C 00 00
+[ 90]   00 19 6A B4 - B4 B2 73 C6 - CF C2 40 6C - 19 EF E8 F7
+[ A0]   FF BB 13 CE - 40 0A 67 1C - 00 05 A7 77 - 9A C1 FB 39
+[ B0]   BE DF BF FF - FF FF FF FF - FF FF FF FF - FF FF FF 00
+        -----------------------------------------------------
+[ C0]   01 82 B9 08 - C0 04 03 FF - FF 00 00 FF - FF 03 03 FF
+[ D0]   00 DC 00 FF - FF FF FF 0D - 46 FF FF FF - FF FF FF FF
+[ E0]   C1 01 E4 00 - 00 00 00 00 - 00 FF FF FF - 7F FF 00 FF
+[ F0]   00 FF FF 18 - 00 02 FF FF - FF FF FF FF - FF FF FF FF
+        -----------------------------------------------------
+[130]   00 00 00 00 - 18 00 00 00 - F7 6F 75 FF - BF DC 6F C5
+[140]   57 BB EF DF - FF C6 EA FD - DA C7 84 36 - 1F 7E FD E3
+[150]   75 EF FB 69 - F3 4E AC FF - 50 A8 00 04 - 00 73 00 00
+[160]   00 00 00 00 - 00 00 4E 91 - 01 00 00 00 - 00 70 D5 A1
+        -----------------------------------------------------
+[170]   D7 72 C7 76 - 19 EA F6 2A - AE 3F FD 13 - AA F8 FD F8
+[180]   B7 F0 7A AF - FF FF FF FF - FF FF 4E A2 - 7F AA E2 ED
+[190]   FF 00 00 01 - 00 FF FF FF - 02 DB FF FF - FF FF FF FF
+[1A0]   FF FF FF FF - FF FF FF FF - FF FF FF FF - FF FF FF FF
+        -----------------------------------------------------
+[1B0]   FF FF FF FF - FF F7 7E 8F - D1 EF FF EF - F9 BF FC F6
+[1C0]   FF FF FF FF - FF FF FF FF - FF FF FF FF - FF FF FF FF
+[1D0]   FF FF FF FF - FF FF FF FF - FF FF FF FF - FF FF FF FF
+[1E0]   FF FF FF FF - FF FF FF FF - FF FF FF FF - FF FF FF FF
+        -----------------------------------------------------
+[1F0]   FF FF FF FF - FF FF FF FF - FF FF FF FF - FF FF FF FF
+        -----------------------------------------------------
+getHDMITX_AuthenticationDone() ==FALSE
+count = 2
+getHDMITX_AuthenticationDone() ==FALSE
+count = 3
+getHDMITX_AuthenticationDone() ==FALSE
+count = 4
+getHDMITX_AuthenticationDone() ==FALSE
+count = 5
+getHDMITX_AuthenticationDone() ==FALSE
+count = 6
+getHDMITX_AuthenticationDone() ==FALSE
+count = 7
+getHDMITX_AuthenticationDone() ==FALSE
+count = 8
+getHDMITX_AuthenticationDone() ==FALSE
+count = 9
+getHDMITX_AuthenticationDone() ==FALSE
+count = 10
+getHDMITX_AuthenticationDone() ==FALSE
+count = 11
+getHDMITX_AuthenticationDone() ==FALSE
+count = 12
+getHDMITX_AuthenticationDone() ==FALSE
+count = 13
+getHDMITX_AuthenticationDone() ==FALSE
+count = 14
+getHDMITX_AuthenticationDone() ==FALSE
+count = 15
+getHDMITX_AuthenticationDone() ==FALSE
+count = 16
+getHDMITX_AuthenticationDone() ==FALSE
+count = 17
+getHDMITX_AuthenticationDone() ==FALSE
+count = 18
+getHDMITX_AuthenticationDone() ==FALSE
+count = 19
+getHDMITX_AuthenticationDone() ==FALSE
+count = 20
+getHDMITX_AuthenticationDone() ==FALSE
+count = 21
+getHDMITX_AuthenticationDone() ==FALSE
+count = 22
+getHDMITX_AuthenticationDone() ==FALSE
+count = 23
+getHDMITX_AuthenticationDone() ==FALSE
+count = 24
+getHDMITX_AuthenticationDone() ==FALSE
+count = 25
+getHDMITX_AuthenticationDone() ==FALSE
+count = 26
+getHDMITX_AuthenticationDone() ==FALSE
+count = 27
+getHDMITX_AuthenticationDone() ==FALSE
+count = 28
+getHDMITX_AuthenticationDone() ==FALSE
+count = 29
+getHDMITX_AuthenticationDone() ==FALSE
+count = 30
+getHDMITX_AuthenticationDone() ==FALSE
+count = 31
+getHDMITX_AuthenticationDone() ==FALSE
+count = 32
+getHDMITX_AuthenticationDone() ==FALSE
+count = 33
+getHDMITX_AuthenticationDone() ==FALSE
+count = 34
+getHDMITX_AuthenticationDone() ==FALSE
+count = 35
+getHDMITX_AuthenticationDone() ==FALSE
+count = 36
+getHDMITX_AuthenticationDone() ==FALSE
+count = 37
+getHDMITX_AuthenticationDone() ==FALSE
+count = 38
+getHDMITX_AuthenticationDone() ==FALSE
+count = 39
+getHDMITX_AuthenticationDone() ==FALSE
+count = 40
+getHDMITX_AuthenticationDone() ==FALSE
+count = 41
+getHDMITX_AuthenticationDone() ==FALSE
+count = 42
+getHDMITX_AuthenticationDone() ==FALSE
+count = 43
+getHDMITX_AuthenticationDone() ==FALSE
+count = 44
+getHDMITX_AuthenticationDone() ==FALSE
+count = 45
+getHDMITX_AuthenticationDone() ==FALSE
+count = 46
+getHDMITX_AuthenticationDone() ==FALSE
+count = 47
+getHDMITX_AuthenticationDone() ==FALSE
+count = 48
+getHDMITX_AuthenticationDone() ==FALSE
+count = 49
+getHDMITX_AuthenticationDone() ==FALSE
+count = 50
+getHDMITX_AuthenticationDone() ==FALSE
+count = 51
+        00 01 02 03   04 05 06 07   08 09 0A 0B   0C 0D 0E 0F
+        -----------------------------------------------------
+[  0]   54 49 12 16 - 01 60 00 00 - 00 7C F8 F7 - 1C 00 60 08
+[ 10]   91 A0 E0 20 - 00 FF 82 XX - 00 74 E0 03 - 00 00 FF 00
+[ 20]   00 FF 00 8C - 8F 27 F7 1F - 90 AE 13 DF - 7C 6B FD A9
+[ 30]   7B E1 8E F9 - FD FF 7F 78 - 3D FD B7 4E - 87 87 F9 AB
+        -----------------------------------------------------
+[ 40]   FF AB 57 00 - AF 2E 00 00 - 4A 22 C8 10 - 2A A5 00 FB
+[ 50]   90 3B B8 3B - D7 CD FE 38 - 15 43 03 FE - 00 95 B6 D8
+[ 60]   FF 00 18 18 - 1D 00 00 00 - 10 30 00 FF - FF FF FF FF
+[ 70]   01 1C 02 00 - 80 00 B8 05 - B4 01 94 00 - 4A 3C 17 04
+        -----------------------------------------------------
+[ 80]   9F 3F D9 3C - 10 3F 17 04 - 09 38 FF FF - FF 9C 00 00
+[ 90]   00 19 6A B4 - B4 B2 73 C6 - CF C2 40 6C - 19 EF E8 F7
+[ A0]   FF BB 13 CE - 40 0A 67 1C - 00 05 A7 77 - 9A C1 FB 39
+[ B0]   BE DF BF FF - FF FF FF FF - FF FF FF FF - FF FF FF 00
+        -----------------------------------------------------
+[ C0]   01 82 B9 08 - C0 04 03 FF - FF 00 00 FF - FF 03 03 FF
+[ D0]   00 DC 00 FF - FF FF FF 0D - 46 FF FF FF - FF FF FF FF
+[ E0]   C1 01 E4 00 - 00 00 00 00 - 00 FF FF FF - 7F FF 00 FF
+[ F0]   00 FF FF 18 - 00 02 FF FF - FF FF FF FF - FF FF FF FF
+        -----------------------------------------------------
+[130]   00 00 00 00 - 18 00 00 00 - F7 6F 75 FF - BF DC 6F C5
+[140]   57 BB EF DF - FF C6 EA FD - DA C7 84 36 - 1F 7E FD E3
+[150]   75 EF FB 69 - F3 4E AC FF - 50 A8 00 04 - 00 73 00 00
+[160]   00 00 00 00 - 00 00 4E 91 - 01 00 00 00 - 00 70 D5 A1
+        -----------------------------------------------------
+[170]   D7 72 C7 76 - 19 EA F6 2A - AE 3F FD 13 - AA F8 FD F8
+[180]   B7 F0 7A AF - FF FF FF FF - FF FF 4E A2 - 7F AA E2 ED
+[190]   FF 00 00 01 - 00 FF FF FF - 02 DB FF FF - FF FF FF FF
+[1A0]   FF FF FF FF - FF FF FF FF - FF FF FF FF - FF FF FF FF
+        -----------------------------------------------------
+[1B0]   FF FF FF FF - FF F7 7E 8F - D1 EF FF EF - F9 BF FC F6
+[1C0]   FF FF FF FF - FF FF FF FF - FF FF FF FF - FF FF FF FF
+[1D0]   FF FF FF FF - FF FF FF FF - FF FF FF FF - FF FF FF FF
+[1E0]   FF FF FF FF - FF FF FF FF - FF FF FF FF - FF FF FF FF
+        -----------------------------------------------------
+[1F0]   FF FF FF FF - FF FF FF FF - FF FF FF FF - FF FF FF FF
+        -----------------------------------------------------
+getHDMITX_AuthenticationDone() ==FALSE
+count = 1
+getHDMITX_AuthenticationDone() ==FALSE
+count = 2
+getHDMITX_AuthenticationDone() ==FALSE
+count = 3
+getHDMITX_AuthenticationDone() ==FALSE
+count = 4
+getHDMITX_AuthenticationDone() ==FALSE
+count = 5
+getHDMITX_AuthenticationDone() ==FALSE
+count = 6
+getHDMITX_AuthenticationDone() ==FALSE
+count = 7
+getHDMITX_AuthenticationDone() ==FALSE
+count = 8
+getHDMITX_AuthenticationDone() ==FALSE
+count = 9
+getHDMITX_AuthenticationDone() ==FALSE
+count = 10
+getHDMITX_AuthenticationDone() ==FALSE
+count = 11
+getHDMITX_AuthenticationDone() ==FALSE
+count = 12
+getHDMITX_AuthenticationDone() ==FALSE
+count = 13
+getHDMITX_AuthenticationDone() ==FALSE
+count = 14
+getHDMITX_AuthenticationDone() ==FALSE
+count = 15
+getHDMITX_AuthenticationDone() ==FALSE
+count = 16
+getHDMITX_AuthenticationDone() ==FALSE
+count = 17
+getHDMITX_AuthenticationDone() ==FALSE
+count = 18
+getHDMITX_AuthenticationDone() ==FALSE
+count = 19
+getHDMITX_AuthenticationDone() ==FALSE
+count = 20
+getHDMITX_AuthenticationDone() ==FALSE
+count = 21
+getHDMITX_AuthenticationDone() ==FALSE
+count = 22
+getHDMITX_AuthenticationDone() ==FALSE
+count = 23
+getHDMITX_AuthenticationDone() ==FALSE
+count = 24
+getHDMITX_AuthenticationDone() ==FALSE
+count = 25
+getHDMITX_AuthenticationDone() ==FALSE
+count = 35
+getHDMITX_AuthenticationDone() ==FALSE
+count = 36
+getHDMITX_AuthenticationDone() ==FALSE
+count = 37
+getHDMITX_AuthenticationDone() ==FALSE
+count = 38
+getHDMITX_AuthenticationDone() ==FALSE
+count = 39
+getHDMITX_AuthenticationDone() ==FALSE
+count = 40
+getHDMITX_AuthenticationDone() ==FALSE
+count = 41
+getHDMITX_AuthenticationDone() ==FALSE
+count = 42
+getHDMITX_AuthenticationDone() ==FALSE
+count = 43
+getHDMITX_AuthenticationDone() ==FALSE
+count = 44
+getHDMITX_AuthenticationDone() ==FALSE
+count = 45
+getHDMITX_AuthenticationDone() ==FALSE
+count = 46
+getHDMITX_AuthenticationDone() ==FALSE
+count = 47
+getHDMITX_AuthenticationDone() ==FALSE
+count = 48
+getHDMITX_AuthenticationDone() ==FALSE
+count = 49
+getHDMITX_AuthenticationDone() ==FALSE
+count = 50
+getHDMITX_AuthenticationDone() ==FALSE

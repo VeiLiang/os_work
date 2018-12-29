@@ -1,0 +1,296 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: uCFS - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\Users\think\AppData\Local\Temp\RSPFC09.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\inc" /I "..\inc" /I "..\include" /I "..\rtos" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "PCVER" /D _WIN32_WINNT=0x0500 /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\FPGA\UCFS\FS\Driver\SD_MMC\SD_MMC_Drive_PC.c"
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\FPGA\UCFS\FS\Driver\SD_MMC\SD_MMC_PC.c"
+]
+Creating command line "cl.exe @C:\Users\think\AppData\Local\Temp\RSPFC09.tmp" 
+Creating temporary file "C:\Users\think\AppData\Local\Temp\RSPFC1A.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\inc" /I "..\include" /I "..\..\inc" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "PCVER" /D _WIN32_WINNT=0x0500 /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\FPGA\UCFS\FS\Code\Gbcode.c"
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\FPGA\UCFS\test\fs_sd_test.c"
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\middleware\common\common_chardef.c"
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\middleware\common\common_chartype.c"
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\middleware\common\common_rbtr.c"
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\middleware\common\common_string.c"
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\middleware\common\common_wstring.c"
+]
+Creating command line "cl.exe @C:\Users\think\AppData\Local\Temp\RSPFC1A.tmp" 
+Creating temporary file "C:\Users\think\AppData\Local\Temp\RSPFC1B.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\inc" /I "..\include" /I "..\..\inc" /I "..\rtos" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "PCVER" /D _WIN32_WINNT=0x0500 /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\FPGA\UCFS\test\video_item_test.c"
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\FPGA\src\queue.c"
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\FPGA\src\xm_h264_cache_command_queue.c"
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\FPGA\src\xm_h264_cache_file.c"
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\FPGA\src\xm_h264_file.c"
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\FPGA\src\xm_semaphore.c"
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\middleware\gdi\xm_file.c"
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\middleware\gdi\xm_kbd_drv.c"
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\FPGA\UCFS\main\os_main.c"
+]
+Creating command line "cl.exe @C:\Users\think\AppData\Local\Temp\RSPFC1B.tmp" 
+Creating temporary file "C:\Users\think\AppData\Local\Temp\RSPFC1C.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\rtos" /I "..\inc" /I "..\include" /I "..\..\inc" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "PCVER" /D _WIN32_WINNT=0x0500 /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\FPGA\src\message_task.c"
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\FPGA\src\target.c"
+]
+Creating command line "cl.exe @C:\Users\think\AppData\Local\Temp\RSPFC1C.tmp" 
+Creating temporary file "C:\Users\think\AppData\Local\Temp\RSPFC1D.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\inc" /I "..\include" /I "..\..\inc" /I "..\rtos\\" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "PCVER" /D _WIN32_WINNT=0x0500 /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\PROJ\ARKN141\SW\ISP_PROJ\ISP_USE_RAW\middleware\common\xmvideoitem.c"
+]
+Creating command line "cl.exe @C:\Users\think\AppData\Local\Temp\RSPFC1D.tmp" 
+Creating temporary file "C:\Users\think\AppData\Local\Temp\RSPFC1E.tmp" with contents
+[
+/nologo /subsystem:windows /incremental:yes /pdb:"Debug/uCFS.pdb" /debug /machine:I386 /out:"Debug/uCFS.exe" /pdbtype:sept 
+.\Debug\win32_fs_os.obj
+.\Debug\win32_heap_simulate.obj
+.\Debug\win32_kernel_simulate.obj
+.\Debug\win32_rtos.obj
+.\Debug\MainFrm.obj
+.\Debug\StdAfx.obj
+.\Debug\uCFS.obj
+.\Debug\uCFSDoc.obj
+.\Debug\uCFSView.obj
+.\Debug\ConfigDrive.obj
+.\Debug\FS_X_Panic.obj
+.\Debug\FS__ECC256.obj
+.\Debug\FS_AddSpaceHex.obj
+.\Debug\FS_AssignCache.obj
+.\Debug\FS_Attrib.obj
+.\Debug\FS_CacheAll.obj
+.\Debug\FS_CacheMan.obj
+.\Debug\FS_CacheRW.obj
+.\Debug\FS_CacheRWQuota.obj
+.\Debug\FS_CLib.obj
+.\Debug\FS_CopyFile.obj
+.\Debug\FS_Core.obj
+.\Debug\FS_CreateDir.obj
+.\Debug\FS_Dir.obj
+.\Debug\FS_DirOld.obj
+.\Debug\FS_ErrorNo2Text.obj
+.\Debug\FS_ErrorOut.obj
+.\Debug\FS_Format.obj
+.\Debug\FS_FRead.obj
+.\Debug\FS_FWrite.obj
+.\Debug\FS_GetFilePos.obj
+.\Debug\FS_GetFileSize.obj
+.\Debug\FS_GetNumFiles.obj
+.\Debug\FS_GetNumOpenFiles.obj
+.\Debug\FS_Journal.obj
+.\Debug\FS_Log.obj
+.\Debug\FS_LogBlock.obj
+.\Debug\FS_LogVolume.obj
+.\Debug\FS_memcpy.obj
+.\Debug\FS_Misc.obj
+.\Debug\FS_Move.obj
+.\Debug\FS_OS_Interface.obj
+.\Debug\FS_Partition.obj
+.\Debug\FS_Read.obj
+.\Debug\FS_Rename.obj
+.\Debug\FS_SetEndOfFile.obj
+.\Debug\FS_SetFilePos.obj
+.\Debug\FS_Storage.obj
+.\Debug\FS_Time.obj
+.\Debug\FS_Truncate.obj
+.\Debug\FS_Unmount.obj
+.\Debug\FS_Verify.obj
+.\Debug\FS_Volume.obj
+.\Debug\FS_Warn.obj
+.\Debug\FS_Write.obj
+.\Debug\ucFS_Version.obj
+.\Debug\SD_MMC_Drive_PC.obj
+.\Debug\SD_MMC_PC.obj
+.\Debug\FAT_API.obj
+.\Debug\FAT_CheckDisk.obj
+.\Debug\FAT_Dir.obj
+.\Debug\FAT_DirEntry.obj
+.\Debug\FAT_DiskInfo.obj
+.\Debug\FAT_Format.obj
+.\Debug\FAT_FormatSD.obj
+.\Debug\FAT_GetFileClusterSectorInfo.obj
+.\Debug\FAT_Ioct.obj
+.\Debug\FAT_LFN.obj
+.\Debug\FAT_Misc.obj
+.\Debug\FAT_Move.obj
+.\Debug\FAT_Open.obj
+.\Debug\FAT_Read.obj
+.\Debug\FAT_Rename.obj
+.\Debug\FAT_SetEndOfFile.obj
+.\Debug\FAT_VolumeLabel.obj
+.\Debug\FAT_Write.obj
+.\Debug\Gbcode.obj
+.\Debug\fs_sd_test.obj
+.\Debug\video_item_test.obj
+.\Debug\message_task.obj
+.\Debug\queue.obj
+.\Debug\target.obj
+.\Debug\xm_h264_cache_command_queue.obj
+.\Debug\xm_h264_cache_file.obj
+.\Debug\xm_h264_file.obj
+.\Debug\xm_semaphore.obj
+.\Debug\common_chardef.obj
+.\Debug\common_chartype.obj
+.\Debug\common_rbtr.obj
+.\Debug\common_string.obj
+.\Debug\common_wstring.obj
+.\Debug\xmvideoitem.obj
+.\Debug\xm_file.obj
+.\Debug\xm_kbd_drv.obj
+.\Debug\os_main.obj
+.\Debug\uCFS.res
+]
+Creating command line "link.exe @C:\Users\think\AppData\Local\Temp\RSPFC1E.tmp"
+<h3>Output Window</h3>
+Compiling...
+SD_MMC_Drive_PC.c
+SD_MMC_PC.c
+Generating Code...
+Compiling...
+Gbcode.c
+fs_sd_test.c
+common_chardef.c
+common_chartype.c
+common_rbtr.c
+common_string.c
+common_wstring.c
+Generating Code...
+Compiling...
+video_item_test.c
+queue.c
+xm_h264_cache_command_queue.c
+xm_h264_cache_file.c
+xm_h264_file.c
+xm_semaphore.c
+xm_file.c
+xm_kbd_drv.c
+os_main.c
+Generating Code...
+Compiling...
+message_task.c
+target.c
+Generating Code...
+Compiling...
+xmvideoitem.c
+Linking...
+Creating temporary file "C:\Users\think\AppData\Local\Temp\RSP117C.tmp" with contents
+[
+/nologo /o"Debug/uCFS.bsc" 
+.\Debug\StdAfx.sbr
+.\Debug\win32_fs_os.sbr
+.\Debug\win32_heap_simulate.sbr
+.\Debug\win32_kernel_simulate.sbr
+.\Debug\win32_rtos.sbr
+.\Debug\MainFrm.sbr
+.\Debug\uCFS.sbr
+.\Debug\uCFSDoc.sbr
+.\Debug\uCFSView.sbr
+.\Debug\ConfigDrive.sbr
+.\Debug\FS_X_Panic.sbr
+.\Debug\FS__ECC256.sbr
+.\Debug\FS_AddSpaceHex.sbr
+.\Debug\FS_AssignCache.sbr
+.\Debug\FS_Attrib.sbr
+.\Debug\FS_CacheAll.sbr
+.\Debug\FS_CacheMan.sbr
+.\Debug\FS_CacheRW.sbr
+.\Debug\FS_CacheRWQuota.sbr
+.\Debug\FS_CLib.sbr
+.\Debug\FS_CopyFile.sbr
+.\Debug\FS_Core.sbr
+.\Debug\FS_CreateDir.sbr
+.\Debug\FS_Dir.sbr
+.\Debug\FS_DirOld.sbr
+.\Debug\FS_ErrorNo2Text.sbr
+.\Debug\FS_ErrorOut.sbr
+.\Debug\FS_Format.sbr
+.\Debug\FS_FRead.sbr
+.\Debug\FS_FWrite.sbr
+.\Debug\FS_GetFilePos.sbr
+.\Debug\FS_GetFileSize.sbr
+.\Debug\FS_GetNumFiles.sbr
+.\Debug\FS_GetNumOpenFiles.sbr
+.\Debug\FS_Journal.sbr
+.\Debug\FS_Log.sbr
+.\Debug\FS_LogBlock.sbr
+.\Debug\FS_LogVolume.sbr
+.\Debug\FS_memcpy.sbr
+.\Debug\FS_Misc.sbr
+.\Debug\FS_Move.sbr
+.\Debug\FS_OS_Interface.sbr
+.\Debug\FS_Partition.sbr
+.\Debug\FS_Read.sbr
+.\Debug\FS_Rename.sbr
+.\Debug\FS_SetEndOfFile.sbr
+.\Debug\FS_SetFilePos.sbr
+.\Debug\FS_Storage.sbr
+.\Debug\FS_Time.sbr
+.\Debug\FS_Truncate.sbr
+.\Debug\FS_Unmount.sbr
+.\Debug\FS_Verify.sbr
+.\Debug\FS_Volume.sbr
+.\Debug\FS_Warn.sbr
+.\Debug\FS_Write.sbr
+.\Debug\ucFS_Version.sbr
+.\Debug\SD_MMC_Drive_PC.sbr
+.\Debug\SD_MMC_PC.sbr
+.\Debug\FAT_API.sbr
+.\Debug\FAT_CheckDisk.sbr
+.\Debug\FAT_Dir.sbr
+.\Debug\FAT_DirEntry.sbr
+.\Debug\FAT_DiskInfo.sbr
+.\Debug\FAT_Format.sbr
+.\Debug\FAT_FormatSD.sbr
+.\Debug\FAT_GetFileClusterSectorInfo.sbr
+.\Debug\FAT_Ioct.sbr
+.\Debug\FAT_LFN.sbr
+.\Debug\FAT_Misc.sbr
+.\Debug\FAT_Move.sbr
+.\Debug\FAT_Open.sbr
+.\Debug\FAT_Read.sbr
+.\Debug\FAT_Rename.sbr
+.\Debug\FAT_SetEndOfFile.sbr
+.\Debug\FAT_VolumeLabel.sbr
+.\Debug\FAT_Write.sbr
+.\Debug\Gbcode.sbr
+.\Debug\fs_sd_test.sbr
+.\Debug\video_item_test.sbr
+.\Debug\message_task.sbr
+.\Debug\queue.sbr
+.\Debug\target.sbr
+.\Debug\xm_h264_cache_command_queue.sbr
+.\Debug\xm_h264_cache_file.sbr
+.\Debug\xm_h264_file.sbr
+.\Debug\xm_semaphore.sbr
+.\Debug\common_chardef.sbr
+.\Debug\common_chartype.sbr
+.\Debug\common_rbtr.sbr
+.\Debug\common_string.sbr
+.\Debug\common_wstring.sbr
+.\Debug\xmvideoitem.sbr
+.\Debug\xm_file.sbr
+.\Debug\xm_kbd_drv.sbr
+.\Debug\os_main.sbr]
+Creating command line "bscmake.exe @C:\Users\think\AppData\Local\Temp\RSP117C.tmp"
+Creating browse info file...
+<h3>Output Window</h3>
+
+
+
+<h3>Results</h3>
+uCFS.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

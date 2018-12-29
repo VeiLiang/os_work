@@ -1,0 +1,746 @@
+#include <stdio.h>
+#include <string.h>
+#include "xm_proj_define.h"
+#include "xm_i2c.h"
+
+#define	SEN_I2C_ADDR				(0x20 >> 1)
+extern unsigned int i2c_reg16_write16 (unsigned int slvaddr, unsigned int ucDataOffset, unsigned int data);
+extern unsigned int i2c_reg16_read16 (unsigned int slvaddr, unsigned int ucDataOffset);
+
+
+void I2C_WRITE (unsigned int addr, unsigned int data)
+{
+	i2c_reg16_write16(SEN_I2C_ADDR,(addr),(data));	
+}
+unsigned int I2C_READ (unsigned int addr)
+{
+	return i2c_reg16_read16(SEN_I2C_ADDR,(addr));
+}
+
+
+
+
+
+static void I2C_BIT (unsigned int addr, unsigned int bit_mask, unsigned int bit_set_clear);
+static void DELAY (int ms);
+static void ap0330_default_registers (void);
+static void ap0330_Default_Register_Changes_OTPM_V2 (void);
+static void ap0330_Sequencer (void);
+static void ap0330_Default_Register_Changes_OTPM_V2 (void);
+static void ap0330_Enable_DevWare_Colorpipe_CCM_and_AWB_settings (void);
+static void ap0330_Parallel_PLL_96MHz (void);
+
+extern void OS_Delay (int);
+
+enum OTPM_VERSION {
+	OTPM_VERSION_UNKNOWN = 0,
+	OTPM_VERSION_1,
+	OTPM_VERSION_2,
+	OTPM_VERSION_3,
+	OTPM_VERSION_4,
+	OTPM_VERSION_5,
+	OTPM_VERSION_COUNT
+};
+
+static unsigned int ap0330_get_otpm_version (void)
+{
+	unsigned int R0x300E, R0x30F0, R0x3072;
+	unsigned otpm_version = OTPM_VERSION_UNKNOWN;
+	R0x300E = I2C_READ (0x300E);
+	R0x30F0 = I2C_READ (0x30F0);
+	R0x3072 = I2C_READ (0x3072);
+  printf ("R0x300E=%04x, R0x30F0=%04x, R0x3072=%04x\n", 
+          R0x300E, R0x30F0, R0x3072);
+	if(R0x300E == 0x10 && R0x30F0 == 0x1200 && R0x3072 == 0x0000)
+		otpm_version = OTPM_VERSION_1;
+	else if(R0x30F0 == 0x1208 && R0x3072 == 0x0000)
+		otpm_version = OTPM_VERSION_2;
+	else if(R0x300E == 0x20 && R0x30F0 == 0x1208)
+	{
+		if(R0x3072 == 0x0006)
+			otpm_version = OTPM_VERSION_3;
+		else if(R0x3072 == 0x0007)
+			otpm_version = OTPM_VERSION_4;
+		else if(R0x3072 == 0x0008)
+			otpm_version = OTPM_VERSION_5;
+	}
+
+	return otpm_version;
+}
+
+static void I2C_BIT (unsigned int addr, unsigned int bit_mask, unsigned int bit_data)
+{
+	unsigned int data;
+	data = I2C_READ (addr);
+	data &= ~bit_mask;
+	if(bit_data)
+	{
+		while (!(bit_mask & 0x01))
+		{
+			bit_mask >>= 1;
+			bit_data <<= 1;
+		}
+		data |= bit_data;
+	}
+
+	I2C_WRITE (addr, ((unsigned short)data));
+}
+
+static void DELAY (int ms)
+{
+	OS_Delay (ms);
+}
+
+
+
+/*
+//////////////////////////////////////////////////////  
+[Default Registers]
+// Set test_pattern GreenB to "1" to indicate that the default register macro has been run
+// All mode macros will test for "1" in 0x3078.  
+// Default initialization sequence will be run if 0x3078 does equals "0".
+
+REG=0x3078,0x0001		//Marker to say that 'Defaults' have been run
+
+//Check OTPM Version.  If R0x3072 is "8" or greater, then do not write default register changes.
+//Only OTPM V5 part do not need write default register changes.
+
+IF_REG=0x3072, 0xFFF, < 0x008, LOAD=Default Register Changes - OTPM V2
+IF_REG=0x3072, 0xFFF, < 0x008, LOAD=Sequencer
+
+//Toggle Flash on Each Frame
+REG=0x3046, 0x4038		// Enable Flash Pin
+REG=0x3048, 0x8480		// Flash Pulse Length
+REG=0x31E0,0x0003       	// changed form 0x0000 to 0x00003 for all OTPM versions
+*/
+static void ap0330_default_registers (void)
+{
+	printf ("Default Registers\n");
+	I2C_WRITE (0x3078,0x0001);	// REG=0x3078,0x0001		//Marker to say that 'Defaults' have been run
+	// IF_REG=0x3072, 0xFFF, < 0x008, LOAD=Default Register Changes - OTPM V2
+	if( (I2C_READ (0x3072) & 0xFFF) < 0x008 )
+		ap0330_Default_Register_Changes_OTPM_V2 ();
+	// IF_REG=0x3072, 0xFFF, < 0x008, LOAD=Sequencer
+	if( (I2C_READ (0x3072) & 0xFFF) < 0x008 )
+		ap0330_Sequencer ();
+
+	I2C_WRITE (0x3046, 0x4038);	// REG=0x3046, 0x4038		// Enable Flash Pin
+	I2C_WRITE (0x3048, 0x8480);	// REG=0x3048, 0x8480		// Flash Pulse Length
+	I2C_WRITE (0x31E0, 0x0003);	//	REG=0x31E0, 0x0003      // changed form 0x0000 to 0x00003 for all OTPM versions
+}
+
+static void ap0330_Default_Register_Changes_OTPM_V2 (void)
+{
+	printf ("Default Register Changes - OTPM V2\n");
+	// [HIDDEN: Default Register Changes - OTPM V2]
+	I2C_WRITE (0x30BA,0x002C);	// REG=0x30BA,0x002C
+	I2C_WRITE (0x30FE,0x0080);	// REG=0x30FE,0x0080
+	I2C_WRITE (0x31E0,0x0003);	// REG=0x31E0,0x0003       	// changed form 0x0000 to 0x00003 to match ODS spec test conditions and correct fused defect clusters
+	I2C_BIT (0x3ECE,0x00FF,0xFF); // BITFIELD=0x3ECE,0x00FF,0xFF	//RESERVED - Do not write to MASK 0xFF00
+	
+
+	I2C_WRITE (0x3ED0,0xE4F6);	// REG=0x3ED0,0xE4F6
+	I2C_WRITE (0x3ED2,0x0146);	// REG=0x3ED2,0x0146		//0x0146 Back to defualt due to cisco concern about unsat pixels
+	I2C_WRITE (0x3ED4,0x8F6C);	// REG=0x3ED4,0x8F6C
+	I2C_WRITE (0x3ED6,0x66CC);	// REG=0x3ED6,0x66CC		//0x6666
+	I2C_WRITE (0x3ED8,0x8C42);	// REG=0x3ED8,0x8C42		//0x8642
+	I2C_WRITE (0x3EDA,0x889B);	// REG=0x3EDA,0x889B
+	I2C_WRITE (0x3EDC,0x8863);	// REG=0x3EDC,0x8863
+	I2C_WRITE (0x3EDE,0xAA04);	// REG=0x3EDE,0xAA04
+	I2C_WRITE (0x3EE0,0x15F0);	// REG=0x3EE0,0x15F0
+	I2C_WRITE (0x3EE6,0x008C);	// REG=0x3EE6,0x008C
+	I2C_WRITE (0x3EE8,0x2024);	// REG=0x3EE8,0x2024
+	I2C_WRITE (0x3EEA,0xFF1F);	// REG=0x3EEA,0xFF1F
+	I2C_WRITE (0x3F06,0x046A);	// REG=0x3F06,0x046A
+	//Below updates will fix eclipse issue.
+	//For Again of 1x, 2x, 4x, and 8x, it needs Dgain of 1.04x (Dgain register REG0x305E set to 0x0085), 
+	//1.06x (0x0088), 1.14x (0x0092) and 1.25x (0x00A0) respectively. This INI only provide maximum Dgain.
+	I2C_WRITE (0x3EDA, 0x88BC);	// REG= 0x3EDA, 0x88BC
+	I2C_WRITE (0x3EDC, 0xAA63);	// REG= 0x3EDC, 0xAA63
+	I2C_WRITE (0x305E, 0x00A0);	// REG= 0x305E, 0x00A0
+}
+
+// LOAD = Sequencer
+static void ap0330_Sequencer (void)
+{
+	printf ("Sequencer\n");
+	//[Sequencer]
+	//OTPM V5 Sequencer
+
+	I2C_BIT (0x301A,0x0004,0);		// BITFIELD=0x301A,0x0004,0  //Disable Streaming	
+	DELAY (100);	//	DELAY=100
+	I2C_WRITE (0x3088, 0x8000);	// REG=0x3088, 0x8000
+	I2C_WRITE (0x3086, 0x4A03);	// REG=0x3086, 0x4A03
+	I2C_WRITE (0x3086, 0x4316);	// REG=0x3086, 0x4316
+	I2C_WRITE (0x3086, 0x0443);	// REG=0x3086, 0x0443
+	I2C_WRITE (0x3086, 0x1645);	// REG=0x3086, 0x1645
+	I2C_WRITE (0x3086, 0x4045);	// REG=0x3086, 0x4045
+	I2C_WRITE (0x3086, 0x6017);	// REG=0x3086, 0x6017
+	I2C_WRITE (0x3086, 0x2045);	// REG=0x3086, 0x2045
+	I2C_WRITE (0x3086, 0x404B);	// REG=0x3086, 0x404B
+	I2C_WRITE (0x3086, 0x1244);	// REG=0x3086, 0x1244
+	I2C_WRITE (0x3086, 0x6134);	// REG=0x3086, 0x6134
+	I2C_WRITE (0x3086, 0x4A31);	// REG=0x3086, 0x4A31
+	I2C_WRITE (0x3086, 0x4342);	// REG=0x3086, 0x4342
+	I2C_WRITE (0x3086, 0x4560);	// REG=0x3086, 0x4560
+	I2C_WRITE (0x3086, 0x2714);	// REG=0x3086, 0x2714
+	I2C_WRITE (0x3086, 0x3DFF);	// REG=0x3086, 0x3DFF
+	I2C_WRITE (0x3086, 0x3DFF);	// REG=0x3086, 0x3DFF
+	I2C_WRITE (0x3086, 0x3DEA);	// REG=0x3086, 0x3DEA
+	I2C_WRITE (0x3086, 0x2704);	// REG=0x3086, 0x2704
+	I2C_WRITE (0x3086, 0x3D10);	// REG=0x3086, 0x3D10
+	I2C_WRITE (0x3086, 0x2705);	// REG=0x3086, 0x2705
+	I2C_WRITE (0x3086, 0x3D10);	// REG=0x3086, 0x3D10
+	I2C_WRITE (0x3086, 0x2715);	// REG=0x3086, 0x2715
+	I2C_WRITE (0x3086, 0x3527);	// REG=0x3086, 0x3527
+	I2C_WRITE (0x3086, 0x053D);	// REG=0x3086, 0x053D
+	I2C_WRITE (0x3086, 0x1045);	// REG=0x3086, 0x1045
+	I2C_WRITE (0x3086, 0x4027);	// REG=0x3086, 0x4027
+	I2C_WRITE (0x3086, 0x0427);	// REG=0x3086, 0x0427
+	I2C_WRITE (0x3086, 0x143D);	// REG=0x3086, 0x143D
+	I2C_WRITE (0x3086, 0xFF3D);	// REG=0x3086, 0xFF3D
+	I2C_WRITE (0x3086, 0xFF3D);	// REG=0x3086, 0xFF3D
+	I2C_WRITE (0x3086, 0xEA62);	// REG=0x3086, 0xEA62
+	I2C_WRITE (0x3086, 0x2728);	// REG=0x3086, 0x2728
+	I2C_WRITE (0x3086, 0x3627);	// REG=0x3086, 0x3627
+	I2C_WRITE (0x3086, 0x083D);	// REG=0x3086, 0x083D
+	I2C_WRITE (0x3086, 0x6444);	// REG=0x3086, 0x6444
+	I2C_WRITE (0x3086, 0x2C2C);	// REG=0x3086, 0x2C2C
+	I2C_WRITE (0x3086, 0x2C2C);	// REG=0x3086, 0x2C2C
+	I2C_WRITE (0x3086, 0x4B01);	// REG=0x3086, 0x4B01
+	I2C_WRITE (0x3086, 0x432D);	// REG=0x3086, 0x432D
+	I2C_WRITE (0x3086, 0x4643);	// REG=0x3086, 0x4643
+	I2C_WRITE (0x3086, 0x1647);	// REG=0x3086, 0x1647
+	I2C_WRITE (0x3086, 0x435F);	// REG=0x3086, 0x435F
+	I2C_WRITE (0x3086, 0x4F50);	// REG=0x3086, 0x4F50
+	I2C_WRITE (0x3086, 0x2604);	// REG=0x3086, 0x2604
+	I2C_WRITE (0x3086, 0x2684);	// REG=0x3086, 0x2684
+	I2C_WRITE (0x3086, 0x2027);	// REG=0x3086, 0x2027
+	I2C_WRITE (0x3086, 0xFC53);	// REG=0x3086, 0xFC53
+	I2C_WRITE (0x3086, 0x0D5C);	// REG=0x3086, 0x0D5C
+	I2C_WRITE (0x3086, 0x0D57);	// REG=0x3086, 0x0D57
+	I2C_WRITE (0x3086, 0x5417);	// REG=0x3086, 0x5417
+	I2C_WRITE (0x3086, 0x0955);	// REG=0x3086, 0x0955
+	I2C_WRITE (0x3086, 0x5649);	// REG=0x3086, 0x5649
+	I2C_WRITE (0x3086, 0x5307);	// REG=0x3086, 0x5307
+	I2C_WRITE (0x3086, 0x5302);	// REG=0x3086, 0x5302
+	I2C_WRITE (0x3086, 0x4D28);	// REG=0x3086, 0x4D28
+	I2C_WRITE (0x3086, 0x6C4C);	// REG=0x3086, 0x6C4C
+	I2C_WRITE (0x3086, 0x0928);	// REG=0x3086, 0x0928
+	I2C_WRITE (0x3086, 0x2C28);	// REG=0x3086, 0x2C28
+	I2C_WRITE (0x3086, 0x294E);	// REG=0x3086, 0x294E
+	I2C_WRITE (0x3086, 0x5C09);	// REG=0x3086, 0x5C09
+	I2C_WRITE (0x3086, 0x6045);	// REG=0x3086, 0x6045
+	I2C_WRITE (0x3086, 0x0045);	//	REG=0x3086, 0x0045
+	I2C_WRITE (0x3086, 0x8026);	// REG=0x3086, 0x8026
+	I2C_WRITE (0x3086, 0xA627);	// REG=0x3086, 0xA627
+	I2C_WRITE (0x3086, 0xF817);	// REG=0x3086, 0xF817
+	I2C_WRITE (0x3086, 0x0227);	// REG=0x3086, 0x0227
+	I2C_WRITE (0x3086, 0xFA5C);	// REG=0x3086, 0xFA5C
+	I2C_WRITE (0x3086, 0x0B17);	// REG=0x3086, 0x0B17
+	I2C_WRITE (0x3086, 0x1826);	// REG=0x3086, 0x1826
+	I2C_WRITE (0x3086, 0xA25C);	// REG=0x3086, 0xA25C
+	I2C_WRITE (0x3086, 0x0317);	// REG=0x3086, 0x0317
+	I2C_WRITE (0x3086, 0x4427);	// REG=0x3086, 0x4427
+	I2C_WRITE (0x3086, 0xF25F);	// REG=0x3086, 0xF25F
+	I2C_WRITE (0x3086, 0x2809);	// REG=0x3086, 0x2809
+	I2C_WRITE (0x3086, 0x1714);	//	REG=0x3086, 0x1714
+	I2C_WRITE (0x3086, 0x2808);	// REG=0x3086, 0x2808
+	I2C_WRITE (0x3086, 0x1616);	// REG=0x3086, 0x1616
+	I2C_WRITE (0x3086, 0x4D1A);	// REG=0x3086, 0x4D1A
+	I2C_WRITE (0x3086, 0x2683);	// REG=0x3086, 0x2683
+	I2C_WRITE (0x3086, 0x1616);	// REG=0x3086, 0x1616
+	I2C_WRITE (0x3086, 0x27FA);	// REG=0x3086, 0x27FA
+	I2C_WRITE (0x3086, 0x45A0);	// REG=0x3086, 0x45A0
+	I2C_WRITE (0x3086, 0x1707);	// REG=0x3086, 0x1707
+	I2C_WRITE (0x3086, 0x27FB);	// REG=0x3086, 0x27FB
+	I2C_WRITE (0x3086, 0x1729);	// REG=0x3086, 0x1729
+	I2C_WRITE (0x3086, 0x4580);	// REG=0x3086, 0x4580
+	I2C_WRITE (0x3086, 0x1708);	// REG=0x3086, 0x1708
+	I2C_WRITE (0x3086, 0x27FA);	//	REG=0x3086, 0x27FA
+	I2C_WRITE (0x3086, 0x1728);	// REG=0x3086, 0x1728
+	I2C_WRITE (0x3086, 0x5D17);	// REG=0x3086, 0x5D17
+	I2C_WRITE (0x3086, 0x0E26);	// REG=0x3086, 0x0E26
+	I2C_WRITE (0x3086, 0x8153);	// REG=0x3086, 0x8153
+	I2C_WRITE (0x3086, 0x0117);	// REG=0x3086, 0x0117
+	I2C_WRITE (0x3086, 0xE653);	// REG=0x3086, 0xE653
+	I2C_WRITE (0x3086, 0x0217);	// REG=0x3086, 0x0217
+	I2C_WRITE (0x3086, 0x1026);	// REG=0x3086, 0x1026
+	I2C_WRITE (0x3086, 0x8326);	// REG=0x3086, 0x8326
+	I2C_WRITE (0x3086, 0x8248);	// REG=0x3086, 0x8248
+	I2C_WRITE (0x3086, 0x4D4E);	// REG=0x3086, 0x4D4E
+	I2C_WRITE (0x3086, 0x2809);	// REG=0x3086, 0x2809
+	I2C_WRITE (0x3086, 0x4C0B);	//	REG=0x3086, 0x4C0B
+	I2C_WRITE (0x3086, 0x6017);	// REG=0x3086, 0x6017
+	I2C_WRITE (0x3086, 0x2027);	// REG=0x3086, 0x2027
+	I2C_WRITE (0x3086, 0xF217);	// REG=0x3086, 0xF217
+	I2C_WRITE (0x3086, 0x535F);	// REG=0x3086, 0x535F
+	I2C_WRITE (0x3086, 0x2808);	// REG=0x3086, 0x2808
+	I2C_WRITE (0x3086, 0x164D);	// REG=0x3086, 0x164D
+	I2C_WRITE (0x3086, 0x1A16);	// REG=0x3086, 0x1A16
+	I2C_WRITE (0x3086, 0x1627);	// REG=0x3086, 0x1627
+	I2C_WRITE (0x3086, 0xFA26);	// REG=0x3086, 0xFA26
+	I2C_WRITE (0x3086, 0x035C);	// REG=0x3086, 0x035C
+	I2C_WRITE (0x3086, 0x0145);	// REG=0x3086, 0x0145
+	I2C_WRITE (0x3086, 0x4027);	// REG=0x3086, 0x4027
+	I2C_WRITE (0x3086, 0x9817);	//	REG=0x3086, 0x9817
+	I2C_WRITE (0x3086, 0x2A4A);	// REG=0x3086, 0x2A4A
+	I2C_WRITE (0x3086, 0x0A43);	// REG=0x3086, 0x0A43
+	I2C_WRITE (0x3086, 0x160B);	// REG=0x3086, 0x160B
+	I2C_WRITE (0x3086, 0x4327);	// REG=0x3086, 0x4327
+	I2C_WRITE (0x3086, 0x9C45);	// REG=0x3086, 0x9C45
+	I2C_WRITE (0x3086, 0x6017);	// REG=0x3086, 0x6017
+	I2C_WRITE (0x3086, 0x0727);	// REG=0x3086, 0x0727
+	I2C_WRITE (0x3086, 0x9D17);	// REG=0x3086, 0x9D17
+	I2C_WRITE (0x3086, 0x2545);	// REG=0x3086, 0x2545
+	I2C_WRITE (0x3086, 0x4017);	// REG=0x3086, 0x4017
+	I2C_WRITE (0x3086, 0x0827);	// REG=0x3086, 0x0827
+	I2C_WRITE (0x3086, 0x985D);	// REG=0x3086, 0x985D
+	I2C_WRITE (0x3086, 0x2645);	//	REG=0x3086, 0x2645
+	I2C_WRITE (0x3086, 0x5C01);	// REG=0x3086, 0x5C01
+	I2C_WRITE (0x3086, 0x4B17);	// REG=0x3086, 0x4B17
+	I2C_WRITE (0x3086, 0x0A28);	// REG=0x3086, 0x0A28
+	I2C_WRITE (0x3086, 0x0853);	// REG=0x3086, 0x0853
+	I2C_WRITE (0x3086, 0x0D52);	// REG=0x3086, 0x0D52
+	I2C_WRITE (0x3086, 0x5112);	// REG=0x3086, 0x5112
+	I2C_WRITE (0x3086, 0x4460);	// REG=0x3086, 0x4460
+	I2C_WRITE (0x3086, 0x184A);	// REG=0x3086, 0x184A
+	I2C_WRITE (0x3086, 0x0343);	// REG=0x3086, 0x0343
+	I2C_WRITE (0x3086, 0x1604);	// REG=0x3086, 0x1604
+	I2C_WRITE (0x3086, 0x4316);	// REG=0x3086, 0x4316
+	I2C_WRITE (0x3086, 0x5843);	// REG=0x3086, 0x5843
+	I2C_WRITE (0x3086, 0x1659);	//	REG=0x3086, 0x1659
+	I2C_WRITE (0x3086, 0x4316);	// REG=0x3086, 0x4316
+	I2C_WRITE (0x3086, 0x5A43);	// REG=0x3086, 0x5A43
+	I2C_WRITE (0x3086, 0x165B);	// REG=0x3086, 0x165B
+	I2C_WRITE (0x3086, 0x4345);	// REG=0x3086, 0x4345
+	I2C_WRITE (0x3086, 0x4027);	// REG=0x3086, 0x4027
+	I2C_WRITE (0x3086, 0x9C45);	// REG=0x3086, 0x9C45
+	I2C_WRITE (0x3086, 0x6017);	// REG=0x3086, 0x6017
+	I2C_WRITE (0x3086, 0x0727);	// REG=0x3086, 0x0727
+	I2C_WRITE (0x3086, 0x9D17);	// REG=0x3086, 0x9D17
+	I2C_WRITE (0x3086, 0x2545);	// REG=0x3086, 0x2545
+	I2C_WRITE (0x3086, 0x4017);	// REG=0x3086, 0x4017
+	I2C_WRITE (0x3086, 0x1027);	// REG=0x3086, 0x1027
+	I2C_WRITE (0x3086, 0x9817);	//	REG=0x3086, 0x9817
+	I2C_WRITE (0x3086, 0x2022);	// REG=0x3086, 0x2022
+	I2C_WRITE (0x3086, 0x4B12);	// REG=0x3086, 0x4B12
+	I2C_WRITE (0x3086, 0x442C);	// REG=0x3086, 0x442C
+	I2C_WRITE (0x3086, 0x2C2C);	// REG=0x3086, 0x2C2C
+	I2C_WRITE (0x3086, 0x2C00);	// REG=0x3086, 0x2C00
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	//	REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	//	REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	//	REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	//	REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	//	REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	//	REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	//	REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	//	REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+	I2C_WRITE (0x3086, 0x0000);	// REG=0x3086, 0x0000
+
+	I2C_BIT (0x301A,0x0004,1);		//	BITFIELD=0x301A,0x0004,1  //Enable Streaming	
+}
+
+
+// LOAD = Enable DevWare Colorpipe CCM and AWB settings
+static void ap0330_Enable_DevWare_Colorpipe_CCM_and_AWB_settings (void)
+{
+	//  Placeholder. Using DevWare default settings for now
+}
+
+// LOAD = Parallel PLL 96MHz	//Assumes 24MHz Input Clock
+static void ap0330_Parallel_PLL_96MHz (void)
+{
+	printf ("Parallel PLL 96MHz\n");
+	/*
+	[Parallel PLL 96MHz]
+
+	// Assuming Input Clock of 24MHz.  Output Clock will be 96MHz
+	// Op_pix_clk_div and op_sys_clk_div are ignored in parallel mode
+	REG=0x302A, 8				// vt_pix_clk_div
+	REG=0x302C, 1				// vt_sys_clk_div
+	REG=0x302E, 1		      		// pre_pll_clk_div
+	REG=0x3030, 32				// pll_multiplier
+	REG=0x3036, 8				// op_pix_clk_div 
+	REG=0x3038, 1				// op_sys_clk_div
+	STATE= Master Clock, 96000000 	//96MHz Output clock with internal 48MHz
+
+	// This conditional statement checks to see if the HDMI board is receiving
+	// 1296 rows from the parallel interface.
+	  This register check was chosen
+
+	// given the limited registers on the HDMI board that could be checked.
+	// An alternative was to look at the FW version (but) 
+	IF_SERIAL= 0xCE, 0x22, 0xFFFF, 8:16, == 0x0510, LOAD=Parallel PLL 98MHz HDMI
+	*/
+	I2C_WRITE (0x302A, 8);	// REG=0x302A, 8				// vt_pix_clk_div
+	//I2C_WRITE (0x302C, 1);	// REG=0x302C, 1				// vt_sys_clk_div
+  I2C_WRITE (0x302C, 8);	// REG=0x302C, 1				// vt_sys_clk_div
+	I2C_WRITE (0x302E, 1);	// REG=0x302E, 1		     	// pre_pll_clk_div
+	//I2C_WRITE (0x3030, 32);	// REG=0x3030, 32				// pll_multiplier
+  I2C_WRITE (0x3030, 64);	// REG=0x3030, 32				// pll_multiplier
+	I2C_WRITE (0x3036, 8);	// REG=0x3036, 8				// op_pix_clk_div 
+	I2C_WRITE (0x3038, 1);	// REG=0x3038, 1				// op_sys_clk_div
+
+	// IF_SERIAL= 0xCE, 0x22, 0xFFFF, 8:16, == 0x0510, LOAD=Parallel PLL 98MHz HDMI
+}
+
+
+/* 
+[HIDDEN: Demo Initialization - Parallel]
+STATE= Minimum Gain, 1000
+STATE= True Black Enable, 1
+STATE= True Black Level, 168
+IMAGE=2304,1296,BAYER-12
+
+PROMPT= "The HDMI can support the parallel interface at 98MHz but the demo2x is limited to 96MHz.  If the HDMI board is not present, this preset will configure the sensor to run at 96MHz."
+
+BITFIELD=0x301A,0x0001,1	//Reset Sensor
+DELAY=100
+REG=0x31AE,0x301		//Output Interface Configured to Parallel
+BITFIELD=0x301A,0x0004,0 	//Disable Streaming
+DELAY=100
+BITFIELD=0x301A,0x0040,1 	//Drive Pins
+BITFIELD=0x301A,0x0080,1 	//Parallel Enable
+BITFIELD=0x301A,0x1000,1 	//SMIA Serializer Disable
+BITFIELD=0x3064,0x0100,0	//Disable Embedded Data
+
+LOAD = default registers 
+LOAD = Enable DevWare Colorpipe CCM and AWB settings
+LOAD = Parallel PLL 96MHz	//Assumes 24MHz Input Clock
+LOAD = Sequencer
+    
+BITFIELD=0x306E,0x1C00,7  	//Max Slew on Pixel Clock
+BITFIELD=0x306E,0xE000,7  	//Max Slew on Data Interface
+
+
+REG=0x3012,1308			//Set coarse integration time to default frame_length_lines
+BITFIELD=0x301A,0x0004,1 	//Enable Streaming
+*/
+void ap0330_DemoInitializationParallel (void)
+{
+	printf ("Demo Initialization - Parallel\n");
+	I2C_BIT (0x301A,0x0001,1);			// BITFIELD=0x301A,0x0001,1	//Reset Sensor
+	DELAY (100);							//	DELAY=100		
+	I2C_WRITE (0x31AE,0x301);			// REG=0x31AE,0x301	// Output Interface Configured to Parallel
+	I2C_BIT (0x301A,0x0004,0);			// BITFIELD=0x301A,0x0004,0 	//Disable Streaming
+	DELAY (100);							//	DELAY=100
+	I2C_BIT (0x301A,0x0040,1);			// BITFIELD=0x301A,0x0040,1 	//Drive Pins
+	I2C_BIT (0x301A,0x0080,1);			// BITFIELD=0x301A,0x0080,1 	//Parallel Enable
+	I2C_BIT (0x301A,0x1000,1);			//	BITFIELD=0x301A,0x1000,1 	//SMIA Serializer Disable
+	I2C_BIT (0x3064,0x0100,0);			// BITFIELD=0x3064,0x0100,0	//Disable Embedded Data
+
+	// LOAD = default registers 
+	ap0330_default_registers ();
+	// LOAD = Enable DevWare Colorpipe CCM and AWB settings
+	ap0330_Enable_DevWare_Colorpipe_CCM_and_AWB_settings ();
+	// LOAD = Parallel PLL 96MHz	//Assumes 24MHz Input Clock
+	ap0330_Parallel_PLL_96MHz ();
+	// LOAD = Sequencer
+  // ap0330_Sequencer (); 
+	I2C_BIT (0x306E,0x1C00,7);	// BITFIELD=0x306E,0x1C00,7  	//Max Slew on Pixel Clock
+	I2C_BIT (0x306E,0xE000,7);	// BITFIELD=0x306E,0xE000,7  	//Max Slew on Data Interface
+
+
+	I2C_WRITE (0x3012,1308);	// REG=0x3012,1308			//Set coarse integration time to default frame_length_lines
+	I2C_BIT (0x301A,0x0004,1); // BITFIELD=0x301A,0x0004,1 	//Enable Streaming
+}
+
+void ap0330_2304x1296_30fps_12bit_Parallel_98MPixel_old (void)
+{
+	unsigned int otpm_version = ap0330_get_otpm_version ();
+	printf ("2304x1296 30fps 12bit - Parallel @ 98MPixel/s\n");
+	printf ("otpm_version = %d\n", otpm_version);
+	// [2304x1296 30fps 12bit - Parallel @ 98MPixel/s]
+	// IF_REG = 0x3078, 0xFFF, == 0, LOAD=Demo Initialization - Parallel
+	if( (I2C_READ (0x3078) & 0xFFF) == 0 )
+	{
+		ap0330_DemoInitializationParallel ();
+	}
+	I2C_BIT (0x301A,0x0004,0);	// BITFIELD=0x301A,0x0004,0	// Disable Streaming
+	I2C_WRITE (0x31AE, 0x301);	// REG=0x31AE, 0x301		// Parallel Output
+
+	//ARRAY READOUT SETTINGS
+	// I2C_WRITE (0x3004, 6);		// REG=0x3004, 6			// X_ADDR_START
+  I2C_WRITE (0x3004, 256);		// REG=0x3004, 6			// X_ADDR_START
+	// I2C_WRITE (0x3008, 2309);	// REG=0x3008, 2309		// X_ADDR_END
+  I2C_WRITE (0x3008, 2175);	// REG=0x3008, 2309		// X_ADDR_END
+	// I2C_WRITE (0x3002, 120);	// REG=0x3002, 120    		// Y_ADDR_START
+  I2C_WRITE (0x3002, 228);	// REG=0x3002, 120    		// Y_ADDR_START
+	// I2C_WRITE (0x3006, 1415);	// REG=0x3006, 1415		// Y_ADDR_END
+  I2C_WRITE (0x3006, 1307);	// REG=0x3006, 1415		// Y_ADDR_END
+
+	//Sub-sampling
+	I2C_WRITE (0x30A2,1);		// REG=0x30A2,1			// X_ODD_INCREMENT
+	I2C_WRITE (0x30A6,1);		// REG=0x30A6,1			// Y_ODD_INCREMENT
+	I2C_BIT (0x3040,0x1000,0);	// BITFIELD=0x3040,0x1000,0 	// Row Bin
+	I2C_BIT (0x3040,0x2000,0);	// BITFIELD=0x3040,0x2000,0 	// Column Bin
+	I2C_BIT (0x3040,0x0200,0);	// BITFIELD=0x3040,0x0200,0 	// Column SF Bin
+	I2C_WRITE (0x3ED4,0x8F6C);	// REG=0x3ED4,0x8F6C		// GrGb improved setting for non-binning
+	I2C_WRITE (0x3ED6,0x66CC);	// REG=0x3ED6,0x66CC		// GrGb improved setting for non-binning
+
+	//Frame-Timing
+	I2C_WRITE (0x300C, 1248);	// REG=0x300C, 1248		// LINE_LENGTH_PCK
+  printf ("0x300C=%d\n", I2C_READ(0x300C));
+	//I2C_WRITE (0x300A, 1308);	// REG=0x300A, 1308		// FRAME_LENGTH_LINES
+  //I2C_WRITE (0x300A, 1308);	// REG=0x300A, 1308		// FRAME_LENGTH_LINES
+  I2C_WRITE (0x300A, 1400);	// REG=0x300A, 1308		// FRAME_LENGTH_LINES
+  printf ("0x300A=%d\n", I2C_READ(0x300A));
+	I2C_WRITE (0x3014, 0);		// REG=0x3014, 0			// FINE_INTEGRATION_TIME
+	//I2C_WRITE (0x3012, 1307);	// REG=0x3012, 1307		// Coarse_Integration_Time
+  I2C_WRITE (0x3012, 1307/6);	// REG=0x3012, 1307		// Coarse_Integration_Time
+	I2C_WRITE (0x3042, 949);	// REG=0x3042, 949			// EXTRA_DELAY
+	I2C_BIT (0x30BA,0x0040,0);	// BITFIELD=0x30BA,0x0040,0	// Digital_Ctrl_Adc_High_Speed
+	// IMAGE=2304,1296,BAYER-12
+	// STATE= True Black Level, 168
+	//STATE= Auto Exposure Minimum FPS, 30
+  //i2c_reg_write(SEN_I2C_ADDR, 0x3070,0x0002);
+	I2C_BIT (0x301A,0x0004,1);	// BITFIELD=0x301A,0x0004,1	// Enable Streaming
+	//////////////////////////////////////////////////////
+}
+
+static void initial_state (void)
+{
+	I2C_WRITE (0x31AE, 0x0301);
+	I2C_WRITE (0x301A, 0x0058);
+	I2C_WRITE (0x301A, 0x0058);
+	I2C_WRITE (0x301A, 0x00D8);
+	I2C_WRITE (0x301A, 0x10D8);
+	I2C_WRITE (0x3064, 0x1802);
+	I2C_WRITE (0x3078, 0x0001);
+	I2C_WRITE (0x3046, 0x4038);	
+	I2C_WRITE (0x3048, 0x8480);
+
+	// v4
+	I2C_WRITE (0x3ED2, 0x0146);
+	I2C_WRITE (0x3ED6, 0x66CC);
+	I2C_WRITE (0x3ED8, 0x8C42);
+
+	//failure rate for 0 degC cannot power on
+	I2C_WRITE (0x3052, 0xA114);
+	I2C_WRITE (0x304A, 0x0070);
+
+	I2C_WRITE (0x302A, 8);	// REG=0x302A, 8				// vt_pix_clk_div
+	//I2C_WRITE (0x302A, 16);	// REG=0x302A, 8				// vt_pix_clk_div
+	//I2C_WRITE (0x302C, 1);	// REG=0x302C, 1				// vt_sys_clk_div
+	I2C_WRITE (0x302C, 16);	// REG=0x302C, 1				// vt_sys_clk_div
+	I2C_WRITE (0x302E, 1);	// REG=0x302E, 1		     	// pre_pll_clk_div
+	//I2C_WRITE (0x3030, 32);	// REG=0x3030, 32				// pll_multiplier
+	I2C_WRITE (0x3030, 255);	// REG=0x3030, 32				// pll_multiplier
+	I2C_WRITE (0x3036, 16);	// REG=0x3036, 8				// op_pix_clk_div 
+	I2C_WRITE (0x3038, 1);	// REG=0x3038, 1				// op_sys_clk_div
+
+	I2C_WRITE (0x301A, 0x10D8);	// RESET_REGISTER
+
+	I2C_WRITE (0x301A, 0x10DC);	// RESET_REGISTER
+	
+	
+	I2C_WRITE (0x306E, 0x9C10);	// DATAPATH_SELECT
+	I2C_WRITE (0x306E, 0xFC00);	// DATAPATH_SELECT
+	I2C_WRITE (0x3012, 0x051C);	// COARSE_INTEGRATION
+	I2C_WRITE (0x301A, 0x10DC);	// RESET_REGISTER
+	I2C_WRITE (0x301A, 0x10D8);	// RESET_REGISTER
+	I2C_WRITE (0x301A, 0x10D8);	// RESET_REGISTER
+	I2C_WRITE (0x301A, 0x10DC);	// RESET_REGISTER
+	I2C_WRITE (0x31AE, 0x0301);	// SERIAL_FORMAT
+
+	I2C_WRITE (0x31E0, 0x0703);	// DP
+}
+
+static void setup_mode(void)
+{
+	//ARRAY READOUT SETTINGS
+	// I2C_WRITE (0x3004, 6);		// REG=0x3004, 6			// X_ADDR_START
+  I2C_WRITE (0x3004, 256);		// REG=0x3004, 6			// X_ADDR_START
+	// I2C_WRITE (0x3008, 2309);	// REG=0x3008, 2309		// X_ADDR_END
+  I2C_WRITE (0x3008, 2175);	// REG=0x3008, 2309		// X_ADDR_END
+	// I2C_WRITE (0x3002, 120);	// REG=0x3002, 120    		// Y_ADDR_START
+//  I2C_WRITE (0x3002, 228);	// REG=0x3002, 120    		// Y_ADDR_START
+	// I2C_WRITE (0x3006, 1415);	// REG=0x3006, 1415		// Y_ADDR_END
+//  I2C_WRITE (0x3006, 1307);	// REG=0x3006, 1415		// Y_ADDR_END
+	// 20150913
+   I2C_WRITE (0x3002, 128);	// REG=0x3002, 120    		// Y_ADDR_START
+  	I2C_WRITE (0x3006, 1207);	// REG=0x3006, 1415		// Y_ADDR_END
+	
+	//Sub-sampling
+	I2C_WRITE (0x30A2,1);		// REG=0x30A2,1			// X_ODD_INCREMENT
+	I2C_WRITE (0x30A6,1);		// REG=0x30A6,1			// Y_ODD_INCREMENT
+	//I2C_BIT (0x3040,0x1000,0);	// BITFIELD=0x3040,0x1000,0 	// Row Bin
+	//I2C_BIT (0x3040,0x2000,0);	// BITFIELD=0x3040,0x2000,0 	// Column Bin
+	//I2C_BIT (0x3040,0x0200,0);	// BITFIELD=0x3040,0x0200,0 	// Column SF Bin
+	I2C_WRITE (0x3040, 0x3200);	//|(1<<14)|(1<<15));		// 关闭/开启水平翻转/垂直翻转
+
+	//Frame-Timing
+	// 20150913 使用 1080p + EIS的16:9标准配置 Active Readout Window 2304 x 1296, Sensor Output Resolution 2304 x 1296
+	// frame_length_lines = 1308, line_length_pck = 1248
+//	I2C_WRITE (0x300C, 1000+100);	// REG=0x300C, 1248		// LINE_LENGTH_PCK
+//	I2C_WRITE (0x300A, 1400);	// REG=0x300A, 1308		// FRAME_LENGTH_LINES
+	I2C_WRITE (0x300C, 1248);	// REG=0x300C, 1248		// LINE_LENGTH_PCK
+	I2C_WRITE (0x300A, 1308);	// REG=0x300A, 1308		// FRAME_LENGTH_LINES
+	
+	I2C_WRITE (0x3014, 0);		// REG=0x3014, 0			// FINE_INTEGRATION_TIME
+	I2C_WRITE (0x3042, 949);	// REG=0x3042, 949			// EXTRA_DELAY
+
+	//I2C_WRITE (0x3012, 1307>>7);	// REG=0x3012, 1307		// Coarse_Integration_Time
+  I2C_WRITE (0x3012, 7);	// REG=0x3012, 1307		// Coarse_Integration_Time
+}
+
+
+void ap0330_2304x1296_30fps_12bit_Parallel_98MPixel (void)
+{
+   unsigned short color;
+	
+#if 1
+#if 1
+	// FPGA GPIO1用作sensor hwardware reset
+	// 6. Assert RESET_BAR for at least 1ms.
+	//while(1)
+	{
+	isp_sensor_set_reset_pin_low ();
+	OS_Delay (100);
+	isp_sensor_set_reset_pin_high ();
+		OS_Delay (100);
+	}
+#endif
+	// 7. Wait 150,000 EXTCLK periods (for internal initialization into software standby.
+	OS_Delay (5);	// 5ms, 3MHZ
+	// 8. Write R0x3152 = 0xA114 to configure the internal register initialization process.
+	// 9. Write R0x304A = 0x0070 to start the internal register initialization process.	
+	I2C_WRITE (0x3152, 0xA114);
+	I2C_WRITE (0x304A, 0x0070);
+	// 10. Wait 150,000 EXTCLK periods
+	OS_Delay (5);	// 5ms, 3MHZ
+#endif
+	
+	unsigned int otpm_version = ap0330_get_otpm_version ();
+	printf ("2304x1296 30fps 12bit - Parallel @ 98MPixel/s\n");
+	printf ("otpm_version = %d\n", otpm_version);
+	
+	I2C_WRITE (0x301A, 0x10DD);
+
+	initial_state ();
+	setup_mode ();
+	DELAY (100);							//	DELAY=100	
+
+	I2C_WRITE (0x30BA, 0x002C);
+	I2C_WRITE (0x301A, 0x10D8);
+	I2C_WRITE (0x3088, 0x80BA);
+	I2C_WRITE (0x3086, 0x0253);
+   
+  OS_Delay(1);
+  
+#if 0
+  I2C_WRITE (0x301A, 0x00DC);
+#else
+  I2C_WRITE (0x301A, 0x00D0);
+  I2C_WRITE (0x301E, 0x0000);// 测试黑电平数据 是否+128偏移
+//  I2C_WRITE (0x301A, 0x00DC);// bit.3 ,
+#endif
+  
+
+	// Color Bar Test Pattern
+	I2C_WRITE (0x3070,0x0002);
+  //I2C_WRITE (0x3070,0x0000);
+  
+#if 0
+  //测试 模式
+  I2C_WRITE (0x3072,0x0480);
+  I2C_WRITE (0x3074,0x0480);
+  I2C_WRITE (0x3076,0x0480);
+  I2C_WRITE (0x3078,0x0480);
+  I2C_WRITE (0x3070,0x0001);
+#endif
+	I2C_WRITE (0x301A, 0x00DC);
+
+	DELAY (100);							//	DELAY=100	
+
+}

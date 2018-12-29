@@ -1,0 +1,66 @@
+OS_EVENT_Set:  
+		; r0 = (OS_EVENT *)pEvent
+   0x80141f24: 0xe92d4038     PUSH      {r3-r5, lr}								
+   0x80141f28: 0xe1a04000     MOV       r4, r0															r4 = pEvent				
+   0x80141f2c: 0xe5d40005     LDRB      r0, [r4, #0x5]												r0 = pEvent->id
+   0x80141f30: 0xe350006b     CMP       r0, #107                ; 0x6b							if(pEvent->id == 107)
+   0x80141f34: 0x0a000001     BEQ       0x80141f40															goto OS_EVENT_Set_1;
+   0x80141f38: 0xe3a000d2     MOV       r0, #210                ; 0xd2
+   0x80141f3c: 0xebff5597     BL        OS_Error                ; 0x801175a0					OS_Error (210)
+OS_EVENT_Set_1:   
+   0x80141f40: 0xebff14ac     BL        OS_AssertISROrTask      ; 0x801071f8					OS_AssertISROrTask
+   0x80141f44: 0xe59f5098     LDR       r5, [pc, #0x98]         ; [0x80141fe4] OS_Global	r5 = &OS_Global
+   									; 检查DI
+   0x80141f48: 0xe5d50001     LDRB      r0, [r5, #0x1]												r0 = OS_Global.Cnt.DI
+   0x80141f4c: 0xe31000f0     TST       r0, #240                ; 0xf0
+   0x80141f50: 0x0a000001     BEQ       0x80141f5c
+   0x80141f54: 0xe3a00099     MOV       r0, #153                ; 0x99
+   0x80141f58: 0xebff5590     BL        OS_Error                ; 0x801175a0
+   									; 关中断
+   0x80141f5c: 0xe10f0000     MRS       r0, CPSR
+   0x80141f60: 0xe3800080     ORR       r0, r0, #128            ; 0x80
+   0x80141f64: 0xe121f000     MSR       CPSR_c, r0
+   
+   0x80141f68: 0xe5d50001     LDRB      r0, [r5, #0x1]												r0 = OS_Global.Cnt.DI
+   0x80141f6c: 0xe2800001     ADD       r0, r0, #1														
+   0x80141f70: 0xe5c50001     STRB      r0, [r5, #0x1]												OS_Global.Cnt.DI ++;
+   0x80141f74: 0xe5940000     LDR       r0, [r4]														r0 = pEvent->pWaitList
+   0x80141f78: 0xe3500000     CMP       r0, #0															if(pEvent->pWaitList == NULL)
+   0x80141f7c: 0x0a000008     BEQ       0x80141fa4															goto OS_EVENT_Set_2;
+   									; 将关键区计数加1	
+   0x80141f80: 0xe5d50000     LDRB      r0, [r5]														r0 = OS_Global.Cnt.Region
+   0x80141f84: 0xe2800001     ADD       r0, r0, #1
+   0x80141f88: 0xe5c50000     STRB      r0, [r5]														OS_Global.Cnt.Region ++
+   									; 当存在任务等待该事件时, 清除Signaled状态, 将等待在该事件上的任务设置为ready
+   0x80141f8c: 0xe3a00000     MOV       r0, #0															r0 = 0
+   0x80141f90: 0xe5c40004     STRB      r0, [r4, #0x4]												pEvent->Signaled = 0
+   0x80141f94: 0xe1a00004     MOV       r0, r4															r0 = pEvent
+   0x80141f98: 0xeb00015c     BL        OS_ClearWaitObj         ; 0x80142510					OS_ClearWaitObj (pEvent)
+   									; 退出关键区
+   0x80141f9c: 0xebff14e1     BL        OS_LeaveRegion          ; 0x80107328					OS_LeaveRegion
+   0x80141fa0: 0xea000001     B         0x80141fac														goto OS_EVENT_Set_3
+OS_EVENT_Set_2:   
+										; 等待任务列表为空, 设置Signaled状态, 等待任务请求该事件
+   0x80141fa4: 0xe3a00001     MOV       r0, #1
+   0x80141fa8: 0xe5c40004     STRB      r0, [r4, #0x4]												pEvent->Signaled = 1
+   
+OS_EVENT_Set_3:    
+							; 检查DI
+   0x80141fac: 0xe5d50001     LDRB      r0, [r5, #0x1]												r0 = OS_Global.Cnt.DI
+   0x80141fb0: 0xe31000f0     TST       r0, #240                ; 0xf0
+   0x80141fb4: 0x0a000001     BEQ       0x80141fc0
+   0x80141fb8: 0xe3a00099     MOV       r0, #153                ; 0x99
+   0x80141fbc: 0xebff5577     BL        OS_Error                ; 0x801175a0
+   						; OS_Global.Cnt.DI --
+   0x80141fc0: 0xe5d50001     LDRB      r0, [r5, #0x1]
+   0x80141fc4: 0xe2400001     SUB       r0, r0, #1
+   0x80141fc8: 0xe5c50001     STRB      r0, [r5, #0x1]
+   						; 检查DI是否为0. 若是, 开中断
+   0x80141fcc: 0xe1b00c00     LSLS      r0, r0, #24
+   0x80141fd0: 0x1a000002     BNE       0x80141fe0
+   0x80141fd4: 0xe10f0000     MRS       r0, CPSR
+   0x80141fd8: 0xe3c00080     BIC       r0, r0, #128            ; 0x80
+   0x80141fdc: 0xe121f000     MSR       CPSR_c, r0
+   						; 返回
+   0x80141fe0: 0xe8bd8031     POP       {r0, r4, r5, pc}
+   0x80141fe4: 0x817133d4     LDRSBHI   r3, [r1, #-0x34]!

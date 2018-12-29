@@ -1,0 +1,83 @@
+_OS_DoRR:
+					; RoundRobin轮询式调度算法, 仅在OS_Global.RoundRobin == 1的情况下调用
+					;
+					; 	算法描述 : 轮询调度选择与当前任务优先级相同的下一个任务单元进行调度, 并将当前任务链接到最后一个与它优先级相同的任务的后面. (优先级相同的同组内轮询调度)
+					;
+					; 检查OS_Global.pCurrentTask是否存在. 
+					;	若存在, 从任务列表中pCurrentTask的下一个任务单元(pNext)开始遍历, 查找第一个"优先级与pCurrentTask的优先级不相同"的任务单元
+   0x80106d1c: 0xe92d4000     STMDB     sp!, {lr}
+ 
+   0x80106d20: 0xe321f093     MSR       CPSR_c, #147            ; 0x93								关中断
+   
+   				; 清除轮询式调度标志	OS_Global.RoundRobin = 0
+   0x80106d24: 0xe59f0974     LDR       r0, [pc, #0x974]        ; [0x801076a0] OS_Global		r0 = &OS_Global
+   0x80106d28: 0xe3a02000     MOV       r2, #0																r2 = 0
+   0x80106d2c: 0xe5901008     LDR       r1, [r0, #0x8]													r1 = OS_Global.pCurrentTask
+   0x80106d30: 0xe5c02004     STRB      r2, [r0, #0x4]													OS_Global.Pending.Flag.RoundRobin = 0;
+   
+   0x80106d34: 0xe321f013     MSR       CPSR_c, #19             ; 0x13								开中断
+   
+   				; 检查当前任务是否存在  OS_Global.pCurrentTask != NULL, 若不存在, 返回.
+   				; 若当前任务存在, 检查当前任务的下一个任务(按照任务链表链接的顺序)是否存在. 若不存在, 返回
+   0x80106d38: 0xe3510000     CMP       r1, #0																if(OS_Global.pCurrentTask != NULL)
+   																														{
+   0x80106d3c: 0x15912000     LDRNE     r2, [r1]																OS_TASK *pTask = r2 = OS_Global.pCurrentTask->pNext;
+   0x80106d40: 0x13520000     CMPNE     r2, #0																	if(pTask == NULL)
+   0x80106d44: 0x0a00001b     BEQ       0x80106db8																	goto _OS_DoRR_exit;
+   																														}
+   																														else
+   																															goto _OS_DoRR_exit;
+   																															
+   				; 检查下一个任务单元(r2)的优先级是否与当前任务相同. 若不相同, 返回																									
+   0x80106d48: 0xe5d13011     LDRB      r3, [r1, #0x11]											r3 = OS_Global.pCurrentTask->Priority
+   0x80106d4c: 0xe5d2c011     LDRB      r12, [r2, #0x11]											r12 = pTask->Priority
+   0x80106d50: 0xe15c0003     CMP       r12, r3														if(r3 != r12)
+   0x80106d54: 0x1a000017     BNE       0x80106db8														goto _OS_DoRR_exit;
+   0x80106d58: 0xea000000     B         0x80106d60													goto _OS_DoRR_1;
+   
+   				; 遍历任务列表, 直到任务的下一个链接为NULL或者下一个任务的优先级与当前任务的优先级不同
+   				; 即在任务列表中查找最后一个优先级与当期任务的优先级相同的任务单元, 查找位置从当前任务的下一个任务开始
+_OS_DoRR_loop:   
+   0x80106d5c: 0xe1a0200c     MOV       r2, r12														r2 = r12 = pTask
+   
+_OS_DoRR_1:   
+   0x80106d60: 0xe592c000     LDR       r12, [r2]													pTask = r12 = pTask->pNext;
+   0x80106d64: 0xe35c0000     CMP       r12, #0														if(pTask == NULL)
+   0x80106d68: 0x0a000002     BEQ       0x80106d78														goto _OS_DoRR_2;
+   0x80106d6c: 0xe5dce011     LDRB      lr, [r12, #0x11]											lr = pTask->Priority
+   0x80106d70: 0xe15e0003     CMP       lr, r3														if(pTask->Priority == OS_Global.pCurrentTask->Priority)
+   0x80106d74: 0x0afffff8     BEQ       0x80106d5c														goto _OS_DoRR_loop;
+   
+_OS_DoRR_2:    
+				; 存在与当前任务pCurrentTask优先级相同的任务, 
+				; pTask(r2)指向的任务单元的优先级与pCurrentTask的优先级相同, 是最后一个与pCurrentTask的优先级相同的任务单元
+   0x80106d78: 0xe321f093     MSR       CPSR_c, #147            ; 0x93						关中断
+   
+   			;			r1 = OS_Global.pCurrentTask
+   			;			r3指向pCurrentTask的下一个任务单元
+   0x80106d7c: 0xe5913000     LDR       r3, [r1]													r3 = OS_Global.pCurrentTask->pNext
+   0x80106d80: 0xe590c010     LDR       r12, [r0, #0x10]											r12 = OS_Global.pActiveTask
+   			;			轮询调度选择与当前任务优先级相同的下一个任务单元进行调度
+   0x80106d84: 0xe15c0001     CMP       r12, r1														if(OS_Global.pActiveTask == OS_Global.pCurrentTask)
+   0x80106d88: 0x05803010     STREQ     r3, [r0, #0x10]												OS_Global.pActiveTask = OS_Global.pCurrentTask->pNext;
+   
+   			; 将当前任务单元链接到最后一个与它优先级相同的任务单元的后面. 	(r2指向)				
+   0x80106d8c: 0xe5910014     LDR       r0, [r1, #0x14]											r0 = OS_Global.pCurrentTask->pPrev
+   0x80106d90: 0xe5803000     STR       r3, [r0]													OS_Global.pCurrentTask->pPrev->pNext = OS_Global.pCurrentTask->pNext
+   0x80106d94: 0xe5830014     STR       r0, [r3, #0x14]											OS_Global.pCurrentTask->pNext->pPrev = OS_Global.pCurrentTask->pPrev;
+   0x80106d98: 0xe5812014     STR       r2, [r1, #0x14]											OS_Global.pCurrentTask->pPrev = pTask;		(pTask 是最后一个与它优先级相同的任务)
+   0x80106d9c: 0xe5920000     LDR       r0, [r2]													r0 = pTask->pNext;
+   0x80106da0: 0xe5810000     STR       r0, [r1]													OS_Global.pCurrentTask->pNext = pTask->pNext;
+   0x80106da4: 0xe3500000     CMP       r0, #0														if(pTask->pNext != NULL)
+   																												{
+   0x80106da8: 0x15801014     STRNE     r1, [r0, #0x14]												pTask->pNext->pPrev = 	OS_Global.pCurrentTask	
+   																												}
+   0x80106dac: 0xe5821000     STR       r1, [r2]													pTask->pNext = OS_Global.pCurrentTask;
+   
+   0x80106db0: 0xe5d2002d     LDRB      r0, [r2, #0x2d]											r0 = pTask->TimeSliceReload
+   0x80106db4: 0xe5c2002c     STRB      r0, [r2, #0x2c]											pTask->TimeSliceRem = pTask->TimeSliceReload;
+   
+_OS_DoRR_exit:   
+   0x80106db8: 0xe321f013     MSR       CPSR_c, #19             ; 0x13						开中断
+   
+   0x80106dbc: 0xe8bd8000     POP       {pc}

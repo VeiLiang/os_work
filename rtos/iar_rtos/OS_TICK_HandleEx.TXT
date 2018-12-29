@@ -1,0 +1,76 @@
+OS_TICK_HandleEx:
+   0x80110de0: 0xe92d4010     PUSH      {r4, lr}
+   0x80110de4: 0xe59f0100     LDR       r0, [pc, #0x100]        ; [0x80110eec] OS_InInt		r0 = &OS_InInt
+   0x80110de8: 0xe5d00000     LDRB      r0, [r0]															r0 = OS_InInt
+   0x80110dec: 0xe3500000     CMP       r0, #0																if(OS_InInt != 0)
+   0x80110df0: 0x1a000001     BNE       0x80110dfc																goto OS_TICK_HandleEx_1;
+   0x80110df4: 0xe3a000a2     MOV       r0, #162                ; 0xa2
+   0x80110df8: 0xeb0019e8     BL        OS_Error                ; 0x801175a0						OS_Error (162)
+   
+OS_TICK_HandleEx_1:
+   0x80110dfc: 0xe59f00ec     LDR       r0, [pc, #0xec]         ; [0x80110ef0] OS_Global		r0 = &OS_Global
+   0x80110e00: 0xe59f20ec     LDR       r2, [pc, #0xec]         ; [0x80110ef4] OS_TimeFract	r2 = &OS_TimeFract
+   0x80110e04: 0xe590101c     LDR       r1, [r0, #0x1c]													r1 = OS_Global.Time
+   0x80110e08: 0xe592c008     LDR       r12, [r2, #0x8]													r12 = OS_TimeFractPerTick		// 分频比
+   0x80110e0c: 0xe5923004     LDR       r3, [r2, #0x4]													r3 = OS_TimeFractPerInt
+   0x80110e10: 0xe35c0001     CMP       r12, #1																if(OS_TimeFractPerTick == 1)
+   																														{
+   0x80110e14: 0x00831001     ADDEQ     r1, r3, r1																r1 = OS_Global.Time + OS_TimeFractPerTick;
+   0x80110e18: 0x0a000008     BEQ       0x80110e40																goto OS_TICK_HandleEx_5;
+   																														}													
+   0x80110e1c: 0xe592e000     LDR       lr, [r2]															lr = OS_TimeFract;
+   0x80110e20: 0xe083300e     ADD       r3, r3, lr															r3 = OS_TimeFractPerInt + OS_TimeFract
+   0x80110e24: 0xe15c0003     CMP       r12, r3																if( OS_TimeFractPerTick < (OS_TimeFractPerInt + OS_TimeFract) )
+   0x80110e28: 0x2a000003     BCS       0x80110e3c																goto OS_TICK_HandleEx_6;
+   0x80110e2c: 0xe043300c     SUB       r3, r3, r12														r3 = r3 - r12 = OS_TimeFractPerInt + OS_TimeFract - OS_TimeFractPerTick
+   
+   												; 累加系统时间 OS_Global.Time
+   0x80110e30: 0xe2811001     ADD       r1, r1, #1															r1 = r1 + 1;
+   0x80110e34: 0xe15c0003     CMP       r12, r3																
+   0x80110e38: 0x3afffffb     BCC       0x80110e2c
+   
+OS_TICK_HandleEx_6:    
+   0x80110e3c: 0xe5823000     STR       r3, [r2]
+   
+OS_TICK_HandleEx_5:   
+								; 检查是否需要抢占式调度. 
+   0x80110e40: 0xe580101c     STR       r1, [r0, #0x1c]													OS_Global.Time = r1		// 更新系统时间
+   0x80110e44: 0xe5902020     LDR       r2, [r0, #0x20]													r2 = OS_Global.TimeDex	// 下一次抢占式调度时间点(时间片用完的时刻)
+   0x80110e48: 0xe0511002     SUBS      r1, r1, r2															r1 = OS_Global.Time - OS_Global.TimeDex;  
+   																														if( (OS_Global.Time - OS_Global.TimeDex) >= 0 )	
+   																														{		// 系统时间已大于或等于当前的抢占式调度时间点, 执行抢占式时间片调度			
+   0x80110e4c: 0x53a01001     MOVPL     r1, #1																		r1 = 1;
+   0x80110e50: 0x55c01006     STRBPL    r1, [r0, #0x6]															OS_Global.Preemption = 1; 			// 设置抢占式时间片调度标志
+   																														}
+   							; 检查时间片是否已用完. 若用完, 设置轮询调度标志  RoundRobin
+   0x80110e54: 0xe5d01024     LDRB      r1, [r0, #0x24]													r1 = OS_Global.TimeSlice
+   0x80110e58: 0xe3510000     CMP       r1, #0																if(OS_Global.TimeSlice == 0)
+   0x80110e5c: 0x0a000004     BEQ       0x80110e74																goto OS_TICK_HandleEx_2;
+   							; 	时间片计数 - 1
+   0x80110e60: 0xe2411001     SUB       r1, r1, #1															
+   0x80110e64: 0xe5c01024     STRB      r1, [r0, #0x24]													OS_Global.TimeSlice --;
+  								; 检查时间片是否已用完 (时间片计数 == 0) 
+   0x80110e68: 0xe1b01c01     LSLS      r1, r1, #24														if( (OS_Global.TimeSlice << 24) == 0 )
+   																														{	// 时间片计数为0, 设置轮询调度RoundRobin为1
+   0x80110e6c: 0x03a01001     MOVEQ     r1, #1																	r1 = 1;
+   0x80110e70: 0x05c01004     STRBEQ    r1, [r0, #0x4]														OS_Global.RoundRobin = 1;
+   									
+   																														}
+OS_TICK_HandleEx_2:   
+								; 检查系统是否有 TickHook 需要调度 OS_pTickHook != NULL
+   0x80110e74: 0xe59f007c     LDR       r0, [pc, #0x7c]         ; [0x80110ef8] OS_pTickHook	r0 = &OS_pTickHook
+   0x80110e78: 0xe5904000     LDR       r4, [r0]															struct OS_TICK_HOOK *pHook = r4 = *OS_pTickHook
+   0x80110e7c: 0xe3540000     CMP       r4, #0																if(pHook == 0)
+   0x80110e80: 0x0a000004     BEQ       0x80110e98																goto OS_TICK_HandleEx_exit;
+   
+   							; 存在TickHook 需要调度
+   							; 遍历OS_pTickHook链表, 调用每个定时器的Hook过程
+OS_TICK_HandleEx_Hook_loop:    
+   0x80110e84: 0xe5940004     LDR       r0, [r4, #0x4]													r0 = pHook->pfUser
+   0x80110e88: 0xe12fff30     BLX       r0																	(*pHook->pfUser)()
+   0x80110e8c: 0xe5944000     LDR       r4, [r4]															pHook = r4 = pHook->pNext
+   0x80110e90: 0xe3540000     CMP       r4, #0																if(pHook->pNext != NULL)
+   0x80110e94: 0x1afffffa     BNE       0x80110e84																goto OS_TICK_HandleEx_Hook_loop;
+   
+OS_TICK_HandleEx_exit:   
+   0x80110e98: 0xe8bd8010     POP       {r4, pc}

@@ -1,0 +1,105 @@
+[DebugChecksum]
+Checksum=-364030680
+[DisAssemblyWindow]
+NumStates=_ 1
+State 1=_ 1
+[InstructionProfiling]
+Enabled=_ 0
+[CodeCoverage]
+Enabled=_ 0
+[Exceptions]
+StopOnUncaught=_ 0
+StopOnThrow=_ 0
+[StackPlugin]
+Enabled=1
+OverflowWarningsEnabled=1
+WarningThreshold=90
+SpWarningsEnabled=1
+WarnHow=0
+UseTrigger=1
+TriggerName=main
+LimitSize=1
+ByteLimit=512
+[InterruptLog]
+LogEnabled=0
+SumEnabled=0
+GraphEnabled=0
+ShowTimeLog=1
+ShowTimeSum=1
+SumSortOrder=0
+[Interrupts]
+Enabled=1
+[MemoryMap]
+Enabled=0
+Base=0
+UseAuto=0
+TypeViolation=1
+UnspecRange=1
+ActionState=1
+[TraceHelper]
+Enabled=0
+ShowSource=1
+[JLinkDriver]
+WatchCond=_ 0
+Watch0=_ 0 "0x00000000" 0 "0x00000000" 0 "0x00000000" 0 "0x00000000" 0 4 0 0
+Watch1=_ 0 "0x00000000" 0 "0x00000000" 0 "0x00000000" 0 "0x00000000" 0 4 0 0
+[BreakpointUsageDialog]
+Placement=_ 546 276 991 559
+[GdbServerDriver]
+WatchCond=_ 0
+Watch0=_ 0 "" 0 "" 0 "" 0 "" 0 0 0 0
+Watch1=_ 0 "" 0 "" 0 "" 0 "" 0 0 0 0
+[Disassemble mode]
+mode=2
+[Breakpoints]
+Bp0=_ "STD_CODE" "{C:\WINDOWS\System32}.690.4@1" 0 0 0 0 "" 0 "" 0
+Bp1=_ "STD_CODE" "{E:\proj\ARKN141\sw\xspace_lusheng_a100\xspace_test\middleware\gdi\xm_osd_layer_animate.c}.750.3@1" 0 0 0 0 "" 0 "" 0
+Bp2=_ "STD_CODE" "{$PROJ_DIR$}.916.4@1" 0 0 0 0 "" 0 "" 0
+Bp3=_ "STD_CODE" "{E:\ARKn141客户程序\路盛}.542.13@1" 0 0 0 0 "" 0 "" 0
+Bp4=_ "STD_CODE" "{$PROJ_DIR$}.199.4@1" 0 0 0 0 "" 0 "" 0
+Bp5=_ "STD_CODE" "{D:\project\luomgen\sifenge\zcd\xspace_4_partition\rtos\driver\decoder\pr2000_drv.c}.7032.6@1" 0 0 0 0 "" 0 "" 0
+Bp6=_ "STD_CODE" "{D:\project\luomgen\sifenge\zcd\xspace_4_partition\rtos\driver\decoder\pr2000_drv.c}.7060.6@1" 0 0 0 0 "" 0 "" 0
+Bp7=_ "STD_CODE" "{D:\project\luomgen\sifenge\zcd\xspace_4_partition\rtos\driver\decoder\pr2000_drv.c}.7068.6@1" 0 0 0 0 "" 0 "" 0
+Bp8=_ "STD_CODE" "{D:\project\luomgen\sifenge\zcd\xspace_4_partition\rtos\driver\decoder\pr2000_drv_2.c}.7061.6@1" 0 0 0 0 "" 0 "" 0
+Bp9=_ "STD_CODE" "{D:\project\luomgen\sifenge\zcd\xspace_4_partition\rtos\driver\decoder\pr2000_drv.c}.7075.6@1" 0 0 0 0 "" 0 "" 0
+Bp10=_ "STD_CODE" "{$PROJ_DIR$}.787.1@1" 0 0 0 0 "" 0 "" 0
+Bp11=_ "STD_CODE" "{$PROJ_DIR$}.787.1@1" 0 0 0 0 "" 0 "" 0
+Bp12=_ "STD_CODE" "{$PROJ_DIR$}.787.1@1" 0 0 0 0 "" 0 "" 0
+Bp13=_ "STD_CODE" "{$PROJ_DIR$}.647.2@1" 0 0 0 0 "" 0 "" 0
+Bp14=_ "STD_CODE" "{$PROJ_DIR$}.631.7@1" 0 0 0 0 "" 0 "" 0
+Bp15=_ "STD_CODE" "{D:\project\luomgen\sifenge\zcd\huixin\xspace_4_partition\rtos\driver\isp_scale}.153.2@1" 0 0 0 0 "" 0 "" 0
+Count=16
+[Log file]
+LoggingEnabled=_ 0
+LogFile=_ ""
+Category=_ 0
+[TermIOLog]
+LoggingEnabled=_ 0
+LogFile=_ ""
+[Aliases]
+A0=_ "D:\Demo\Double_Cut\code_Software\xspace\rtos\core\cortex_a5_board_cstartup_iar.s" "E:\ARKn141客户程序\橙之阳四分割\xspace_4_partition\rtos\core\cortex_a5_board_cstartup_iar.s"
+A1=_ "D:\Program Files\IAR Systems\Embedded Workbench 6.0\arm\inc\c\DLib_Product_string.h" ""
+A2=_ "D:\_Repositories\ARK\branches\huk\N141\xspace_4_partition\rtos\core\cortex_a5_board_cstartup_iar.s" "F:\Work\KaiYang\branches\zhangy\141\HX\HX_N141_D6752_2REC_FG_70D50P_V2\rtos\core\cortex_a5_board_cstartup_iar.s"
+A3=_ "D:\project\luomgen\sifenge\zcd\huixin\xspace_4_partition\rtos\core\cortex_a5_board_cstartup_iar.s" ""
+A4=_ "D:\work\project\PROJECT\N141\ARKN141\20170622\tulv_xspace_20170710\xspace\lib\lpng167\pngread.c" ""
+A5=_ "D:\work\project\PROJECT\N141\ARKN141\20170622\tulv_xspace_20170710\xspace\rtos\core\cortex_a5_board_cstartup_iar.s" "E:\ARKn141客户程序\ITU601_720P_NVP6134C\xspace\rtos\core\cortex_a5_board_cstartup_iar.s"
+A6=_ "E:\ARKn141客户程序\RGB_MIPI\xspace\rtos\core\cortex_a5_board_cstartup_iar.s" ""
+A7=_ "E:\proj\ARKN141\sw\xspace\lib\xm_rotate_lib\src\xm_load_yuva444_normal.c" ""
+A8=_ "E:\proj\ARKN141\sw\xspace\lib\xm_rotate_lib\src\xm_rotate.c" ""
+A9=_ "E:\proj\ARKN141\sw\xspace\lib\xm_rotate_lib\src\xm_rotate_zone.c" ""
+A10=_ "E:\proj\ARKN141\sw\xspace\lib\zlib-1.2.8\inflate.c" ""
+A11=_ "E:\proj\ARKN141\sw\xspace\rtos\core\os_change_task.c" ""
+A12=_ "E:\proj\ARKN141\sw\xspace_lusheng_a100\xspace_test\middleware\gdi\xm_osd_layer_animate.c" ""
+A13=_ "E:\proj\ARKN141\sw\xspace_lusheng_a100\xspace_test\rtos\core\cortex_a5_board_cstartup_iar.s" "E:\ARKn141客户程序\橙之阳\xspace_streaming\proj\ARKN141_DEMO\ark1960_DEBUG.mac"
+A14=_ "E:\proj\ARKN141\sw\xspace_lusheng_a100\xspace_test\rtos\core\cortex_a5_cp15_asm_iar.s" ""
+A15=_ "E:\proj\ARKN141\sw\xspace_lusheng_a100\xspace_test\rtos\driver\irq\irq.c" "E:\ARKn141客户程序\路盛\xspace_streaming\proj\ARKN141_DEMO\ark1960_DEBUG.mac"
+A16=_ "E:\proj\ARKN141\sw\xspace_lusheng_a100\xspace_test\rtos\driver\power\xm_power.c" ""
+Count=17
+SuppressDialog=1
+[CallStackLog]
+Enabled=0
+[DriverProfiling]
+Enabled=0
+Mode=650768696
+Graph=0
+Symbiont=0

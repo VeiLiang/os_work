@@ -1,0 +1,110 @@
+OS_MakeTaskReady:
+   0x801073e8: 0xe92d4010     PUSH      {r4, lr}
+   																		struct OS_TASK *pTempTask;
+   																		OS_WAIT_LIST *pWaitList;
+   																		pWaitList = pTask->pWaitList;
+   0x801073ec: 0xe5901008     LDR       r1, [r0, #0x8]		if(pWaitList == NULL)	
+   0x801073f0: 0xe3510000     CMP       r1, #0						goto OS_MakeTaskReady_1;
+   0x801073f4: 0x0a000006     BEQ       0x80107414		; OS_MakeTaskReady_1
+   
+   									; 将pTask从pWaitList双向链表中断开							
+   0x801073f8: 0xe5912000     LDR       r2, [r1]				OS_WAIT_LIST *pNext = pWaitList->pNext;	
+   0x801073fc: 0xe5911004     LDR       r1, [r1, #0x4]		OS_WAIT_LIST *pPrev = pWaitList->pPrev;	
+   0x80107400: 0xe3520000     CMP       r2, #0					if(pNext != NULL) 
+   0x80107404: 0x15821004     STRNE     r1, [r2, #0x4]			pNext->pPrev = pPrev;
+   0x80107408: 0xe5812000     STR       r2, [r1]				pPrev->pNext = pNext;
+   0x8010740c: 0xe3a01000     MOV       r1, #0					
+   0x80107410: 0xe5801008     STR       r1, [r0, #0x8]		pTask->pWaitList = NULL;
+   
+OS_MakeTaskReady_1:   
+										; 将pTask->Stat &= 3;
+   0x80107414: 0xe5d01010     LDRB      r1, [r0, #0x10]											r1 = Stat = pTask->Stat;
+   0x80107418: 0xe59f4280     LDR       r4, [pc, #0x280]  ; [0x801076a0] OS_Global		r4 = OS_GLOBAL *pOS_Global = &OS_Global;
+   0x8010741c: 0xe2111003     ANDS      r1, r1, #3													Stat = Stat & 3;
+   0x80107420: 0xe5c01010     STRB      r1, [r0, #0x10]											pTask->Stat = Stat;
+   0x80107424: 0x1a00000e     BNE       0x80107464		; OS_MakeTaskReady_2					if(Stat != 0)
+   																													goto OS_MakeTaskReady_2;
+   																													
+   										; Stat = 0, task为ready状态
+											; 将其与OS_Global.pActiveTask的任务比较, 判断是否将其置为下一个活跃任务													
+   0x80107428: 0xe5941010     LDR       r1, [r4, #0x10]											struct OS_TASK *pActiveTask = OS_Global.pActiveTask;
+   0x8010742c: 0xe3510000     CMP       r1, #0														if(pActiveTask != NULL)
+   0x80107430: 0x1a00000c     BNE       0x80107468		; OS_MakeTaskReady_3: 					goto OS_MakeTaskReady_3;
+   
+OS_MakeTaskReady_5:
+																													; 将当前task设置为ActiveTask
+   0x80107434: 0xe5840010     STR       r0, [r4, #0x10]											OS_Global.pActiveTask = pTask;
+OS_MakeTaskReady_6:
+   0x80107438: 0xe5d41000     LDRB      r1, [r4]													r1 = Region = OS_Global.Cnt.Region;
+   0x8010743c: 0xe3a00001     MOV       r0, #1														r0 = 1
+   0x80107440: 0xe3510000     CMP       r1, #0														if(OS_Global.Cnt.Region != 0)
+   0x80107444: 0x1a000005     BNE       0x80107460					; OS_MakeTaskReady_4			goto OS_MakeTaskReady_4;
+   
+   ;											调用 OS_Switch 
+   0x80107448: 0xe5c40000     STRB      r0, [r4]													OS_Global.Region = 1;	
+   0x8010744c: 0xe1a00004     MOV       r0, r4														r0 = r4 = &OS_Global
+   0x80107450: 0xeb006d97     BL        OS_Switch               ; 0x80122ab4				OS_Switch(&OS_Global)
+   0x80107454: 0xe3a00000     MOV       r0, #0
+   0x80107458: 0xe5c40000     STRB      r0, [r4]													OS_Global.Region = 0;
+   0x8010745c: 0xea000000     B         0x80107464			; OS_MakeTaskReady_2				goto OS_MakeTaskReady_2;
+   
+ OS_MakeTaskReady_4:  
+   0x80107460: 0xe5c40005     STRB      r0, [r4, #0x5]											OS_Global.TaskSwitch = 1;				
+   
+OS_MakeTaskReady_2:    
+   0x80107464: 0xeaffffa3     B         0x801072f8		// 检查DI计数器,并返回
+   
+OS_MakeTaskReady_3:   
+						;	比较 pTask 与 pActiveTask的任务优先级 Priority
+   0x80107468: 0xe5d02011     LDRB      r2, [r0, #0x11]										task_Priority	= pTask->Priority;
+   0x8010746c: 0xe5d13011     LDRB      r3, [r1, #0x11]
+   0x80107470: 0xe1530002     CMP       r3, r2													if(pActiveTask->Priority < pTask->Priority)
+   0x80107474: 0xbaffffee     BLT       0x80107434		; OS_MakeTaskReady_5					goto OS_MakeTaskReady_5;
+   0x80107478: 0xe1510000     CMP       r1, r0													if(pActiveTask == pTask)
+   0x8010747c: 0x0affffed     BEQ       0x80107438		; OS_MakeTaskReady_6					goto OS_MakeTaskReady_6;
+   0x80107480: 0xe1520003     CMP       r2, r3													if(pTask->Priority != pActiveTask->Priority)
+   0x80107484: 0x1afffff6     BNE       0x80107464		; OS_MakeTaskReady_2					goto OS_MakeTaskReady_2;	// pTask的优先级 < pActiveTask的优先级
+   
+   																											; pTask的优先级与pActiveTask的优先级相同
+   																											
+   0x80107488: 0xe1a03000     MOV       r3, r0													pTempTask = pTask;
+   
+   
+   																											相同优先级时, 根据pTask及pActiveTask在Task链表中的位置决定其优先级,
+   																											Task链表中任务队列中"排队在前面"的任务比"排队在后面"的任务具有更高优先级
+   																											
+   																											检查pActiveTask是否在pTask的后面. 若是, 
+   																											
+OS_MakeTaskReady_7:																				OS_MakeTaskReady_7:
+	0x8010748c: 0xe5933000     LDR       r3, [r3]												pTempTask = pTempTask->pNext;		// pNext将task链表连接, 从高优先级到低优先级
+   0x80107490: 0xe3530000     CMP       r3, #0													if(pTempTask == NULL)		// Task链表尾部
+   0x80107494: 0x0afffff2     BEQ       0x80107464		; OS_MakeTaskReady_2					goto OS_MakeTaskReady_2;
+   0x80107498: 0xe5d3c011     LDRB      r12, [r3, #0x11]										temp_Priority = pTempTask->Priority;
+   0x8010749c: 0xe152000c     CMP       r2, r12													if(task_Priority != temp_Priority)
+   0x801074a0: 0x1affffef     BNE       0x80107464		; OS_MakeTaskReady_2					goto OS_MakeTaskReady_2;
+   0x801074a4: 0xe1530001     CMP       r3, r1													if(pTempTask != pActiveTask)
+   0x801074a8: 0x1afffff7     BNE       0x8010748c		; OS_MakeTaskReady_7					goto OS_MakeTaskReady_7;
+   																											; pActiveTask在pTask的后面, pTask按照排队原则具有更高的优先级,
+   																											; pTask将被设置为下一个活跃的任务
+   0x801074ac: 0xeaffffe0     B         0x80107434		; OS_MakeTaskReady_5				goto OS_MakeTaskReady_5;
+
+
+
+	; 检查OS_Global.Cnt.DI(中断禁止计数器)是否溢出(>16), 若溢出, 调用OS_Error
+   0x801072f8: 0xe5d40001     LDRB      r0, [r4, #0x1]									
+   0x801072fc: 0xe31000f0     TST       r0, #240                ; 0xf0				if(OS_Global.DI & 0xF0)
+   0x80107300: 0x0a000001     BEQ       0x8010730c												goto label_1;
+   0x80107304: 0xe3a00099     MOV       r0, #153                ; 0x99				OS_Error(0x99);
+   0x80107308: 0xeb0040a4     BL        OS_Error                ; 0x801175a0
+   
+   // OS_Global.Cnt.DI(中断禁止计数器)未溢出, 正常
+   // 检查OS_Global.Cnt.DI是否为0. 若为0, 开启中断
+label_1:   
+   0x8010730c: 0xe5d40001     LDRB      r0, [r4, #0x1]									
+   0x80107310: 0xe3500000     CMP       r0, #0												if(OS_Global.DI != 0)
+   0x80107314: 0x1a000002     BNE       0x80107324												goto label_2;
+   0x80107318: 0xe10f0000     MRS       r0, CPSR											CPSR = CPSR & ~0x80;		// 开中断
+   0x8010731c: 0xe3c00080     BIC       r0, r0, #128            ; 0x80
+   0x80107320: 0xe121f000     MSR       CPSR_c, r0
+label_2:   
+   0x80107324: 0xe8bd8010     POP       {r4, pc}					; 与 进入时的PUSH      {r4, lr}对应

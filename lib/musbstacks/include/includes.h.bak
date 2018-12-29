@@ -1,0 +1,41 @@
+/*
+*********************************************************************************************************
+*                                               uC/OS-II
+*                                        The Real-Time Kernel
+*
+*                         (c) Copyright 1992-2002, Jean J. Labrosse, Weston, FL
+*                                          All Rights Reserved
+*
+*                                           MASTER INCLUDE FILE
+*********************************************************************************************************
+*/
+
+/*
+*********************************************************************************************************
+*                                               ARM Port
+*
+*                 Target           : ARM (Includes ARM7, ARM9)
+*                 Ported by        : Michael Anburaj
+*                 URL              : http://geocities.com/michaelanburaj/    Email : michaelanburaj@hotmail.com
+*
+*********************************************************************************************************
+*/
+
+#ifndef __INCLUDES_H__
+#define __INCLUDES_H__
+
+
+#include    "rtos.h"
+
+typedef unsigned int   OS_STK;                   /* Each stack entry is 32-bit wide                    */
+
+#define	OS_NO_ERR	0
+
+void *OSSemCreate (INT16U cnt);
+void  *OSSemDel (void *pevent, INT8U opt, INT8U *err);
+INT8U  OSSemPost (void *pevent);
+void  OSSemPend (void *pevent, INT16U timeout, INT8U *err);
+
+
+#endif /*__INCLUDES_H__*/
+

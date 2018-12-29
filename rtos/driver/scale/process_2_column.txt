@@ -1,0 +1,75 @@
+static void process_2_column (unsigned char *src_ram, unsigned char *dst_ddr, int width, int height)
+{
+process_2_column:
+   0x80010fa0: 0xe92d47f0     PUSH      {r4-r10, lr}
+   0x80010fa4: 0xe1a0c000     MOV       r12, r0
+  for (j = 0; j < width/2; j ++)
+   0x80010fa8: 0xe0820fa2     ADD       r0, r2, r2, LSR #31
+   0x80010fac: 0xe1a0e0c0     ASR       lr, r0, #1
+   0x80010fb0: 0xe35e0001     CMP       lr, #1
+   0x80010fb4: 0xba000031     BLT       ??process_2_column_0    ; 0x80011080
+   0x80010fb8: 0xe082000c     ADD       r0, r2, r12
+   sdata = *(unsigned short *)src;
+??process_2_column_1:
+   0x80010fbc: 0xe0dc40b2     LDRH      r4, [r12], #0x2
+   sdata = *(unsigned short *)src;
+   0x80010fc0: 0xe1d070b0     LDRH      r7, [r0]
+   0x80010fc4: 0xe6ef5074     UXTB      r5, r4
+   0x80010fc8: 0xe1a06444     ASR       r6, r4, #8
+   data1 |= (sdata & 0xFF) << 8;
+   0x80010fcc: 0xe20740ff     AND       r4, r7, #255            ; 0xff
+   0x80010fd0: 0xe1854404     ORR       r4, r5, r4, LSL #8
+   0x80010fd4: 0xe6ef6076     UXTB      r6, r6
+   data3 |= (sdata & 0xFF00);
+   0x80010fd8: 0xe2075cff     AND       r5, r7, #65280          ; 0xff00
+   0x80010fdc: 0xe1855006     ORR       r5, r5, r6
+   src +=  width;
+   0x80010fe0: 0xe0826000     ADD       r6, r2, r0
+   sdata = *(unsigned short *)src;
+   0x80010fe4: 0xe1d670b0     LDRH      r7, [r6]
+   src +=  width;
+   0x80010fe8: 0xe0826006     ADD       r6, r2, r6
+  for (j = 0; j < width/2; j ++)
+   0x80010fec: 0xe2800002     ADD       r0, r0, #2
+   0x80010ff0: 0xe20780ff     AND       r8, r7, #255            ; 0xff
+   0x80010ff4: 0xe2077cff     AND       r7, r7, #65280          ; 0xff00
+   0x80010ff8: 0xe1855407     ORR       r5, r5, r7, LSL #8
+   0x80010ffc: 0xe1d670b0     LDRH      r7, [r6]
+   0x80011000: 0xe1844808     ORR       r4, r4, r8, LSL #16
+   0x80011004: 0xe0828006     ADD       r8, r2, r6
+   0x80011008: 0xe1844c07     ORR       r4, r4, r7, LSL #24
+   0x8001100c: 0xe2077cff     AND       r7, r7, #65280          ; 0xff00
+   0x80011010: 0xe1855807     ORR       r5, r5, r7, LSL #16
+   0x80011014: 0xe1d870b0     LDRH      r7, [r8]
+   0x80011018: 0xe0828008     ADD       r8, r2, r8
+   0x8001101c: 0xe1d890b0     LDRH      r9, [r8]
+   0x80011020: 0xe6ef6077     UXTB      r6, r7
+   0x80011024: 0xe1a07807     LSL       r7, r7, #16
+   0x80011028: 0xe209a0ff     AND       r10, r9, #255           ; 0xff
+   0x8001102c: 0xe2099cff     AND       r9, r9, #65280          ; 0xff00
+   0x80011030: 0xe1897c27     ORR       r7, r9, r7, LSR #24
+   0x80011034: 0xe0828008     ADD       r8, r2, r8
+   0x80011038: 0xe1d890b0     LDRH      r9, [r8]
+   0x8001103c: 0xe186640a     ORR       r6, r6, r10, LSL #8
+   0x80011040: 0xe19280b8     LDRH      r8, [r2, +r8]
+   0x80011044: 0xe209a0ff     AND       r10, r9, #255           ; 0xff
+   0x80011048: 0xe186680a     ORR       r6, r6, r10, LSL #16
+   0x8001104c: 0xe5814000     STR       r4, [r1]
+   0x80011050: 0xe1864c08     ORR       r4, r6, r8, LSL #24
+   0x80011054: 0xe2099cff     AND       r9, r9, #65280          ; 0xff00
+   0x80011058: 0xe5814004     STR       r4, [r1, #0x4]
+   0x8001105c: 0xe1877409     ORR       r7, r7, r9, LSL #8
+   0x80011060: 0xe0831001     ADD       r1, r3, r1
+   0x80011064: 0xe2084cff     AND       r4, r8, #65280          ; 0xff00
+   0x80011068: 0xe5815000     STR       r5, [r1]
+   0x8001106c: 0xe1874804     ORR       r4, r7, r4, LSL #16
+   0x80011070: 0xe5814004     STR       r4, [r1, #0x4]
+   0x80011074: 0xe0831001     ADD       r1, r3, r1
+   0x80011078: 0xe25ee001     SUBS      lr, lr, #1
+  for (j = 0; j < width/2; j ++)
+   0x8001107c: 0x1affffce     BNE       ??process_2_column_1    ; 0x80010fbc
+}
+??process_2_column_0:
+   0x80011080: 0xe8bd87f0     POP       {r4-r10, pc}
+   
+   49

@@ -1,0 +1,10 @@
+execUserPreload()
+{
+	__message "Update system through J-Link\n";
+	
+	// 写入"SPIWRITE" (0x53 0x50 0x49 0x57 0x52 0x49 0x54 0x45)到片内SRAM地址 0x300008
+	__writeMemory32(0x53504957, 0x0300008, "Memory");
+	__writeMemory32(0x52495445, 0x030000C, "Memory");
+	
+	__message "Write System-Update ID Finished\n";
+}

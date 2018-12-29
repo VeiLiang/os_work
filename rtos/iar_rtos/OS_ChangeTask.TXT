@@ -1,0 +1,301 @@
+OS_ChangeTask:
+		// r0 = &OS_Global
+   0x80106ee0: 0xe92d40f8     PUSH      {r3-r7, lr}
+   0x80106ee4: 0xe1a04000     MOV       r4, r0											r4 = &OS_Global
+   0x80106ee8: 0xe3a05000     MOV       r5, #0											r5 = 0
+   0x80106eec: 0xe5c45001     STRB      r5, [r4, #0x1]								OS_Global.Cnt.DI = 0
+   					; 检查关键区计数器是否为0. 若为0, 系统异常
+   0x80106ef0: 0xe5d40000     LDRB      r0, [r4]										r0 = OS_Global.Cnt.Region
+   0x80106ef4: 0xe3500000     CMP       r0, #0											if(OS_Global.Cnt.Region != 0)
+   0x80106ef8: 0x1a000001     BNE       0x80106f04											goto OS_ChangeTask_1;
+   0x80106efc: 0xe3a00076     MOV       r0, #118                ; 0x76
+   0x80106f00: 0xeb0041a6     BL        OS_Error                ; 0x801175a0	
+OS_ChangeTask_1:   
+						; 检查系统栈的完整性, 检查栈底部的值为0xcD
+   0x80106f04: 0xeb006ec8     BL        OS_GetSysStackBase      ; 0x80122a2c
+   					; r0 = OS_GetSysStackBase()
+   0x80106f08: 0xe5d00000     LDRB      r0, [r0]
+   0x80106f0c: 0xe35000cd     CMP       r0, #205                ; 0xcd
+   0x80106f10: 0x0a000001     BEQ       0x80106f1c			; OS_ChangeTask_2
+   0x80106f14: 0xe3a0007d     MOV       r0, #125                ; 0x7d
+   0x80106f18: 0xeb0041a0     BL        OS_Error                ; 0x801175a0
+
+OS_ChangeTask_2: 
+						; 检查Int栈的完整性    
+   0x80106f1c: 0xeb006ebc     BL        OS_GetIntStackBase      ; 0x80122a14
+   0x80106f20: 0xe5d00000     LDRB      r0, [r0]
+   0x80106f24: 0xe35000cd     CMP       r0, #205                ; 0xcd
+   0x80106f28: 0x0a000001     BEQ       0x80106f34
+   0x80106f2c: 0xe3a0007e     MOV       r0, #126                ; 0x7e
+   0x80106f30: 0xeb00419a     BL        OS_Error                ; 0x801175a0
+   
+OS_ChangeTask_3:   
+						// 保存当前任务的状态 (pExtendContext )
+   0x80106f34: 0xe5940008     LDR       r0, [r4, #0x8]												pCurrentTask = r0 = OS_Global.pCurrentTask
+   0x80106f38: 0xe3500000     CMP       r0, #0															if(OS_Global.pCurrentTask == NULL)
+   0x80106f3c: 0x0a00000e     BEQ       0x80106f7c																goto OS_ChangeTask_4;
+   0x80106f40: 0xe5901030     LDR       r1, [r0, #0x30]												r1 = pCurrentTask->pExtendContext
+   0x80106f44: 0xe3510000     CMP       r1, #0															if(pCurrentTask->pExtendContext != 0)
+   																													{
+   0x80106f48: 0x15911000     LDRNE     r1, [r1]															r1 = *pCurrentTask->pExtendContext
+   0x80106f4c: 0x13510000     CMPNE     r1, #0																
+   																													}
+   																													if(pCurrentTask->pExtendContext == 0)						
+   0x80106f50: 0x0a000004     BEQ       0x80106f68															goto OS_ChangeTask_5;
+   
+   0x80106f54: 0xe5900004     LDR       r0, [r0, #0x4]
+   0x80106f58: 0xe12fff31     BLX       r1
+   0x80106f5c: 0xe5940008     LDR       r0, [r4, #0x8]
+   0x80106f60: 0xe3500000     CMP       r0, #0
+   0x80106f64: 0x0a000004     BEQ       0x80106f7c
+   
+OS_ChangeTask_5:   
+					// 保存当前任务的状态 (OS_pTLS )
+   0x80106f68: 0xe59f0738     LDR       r0, [pc, #0x738]        ; [0x801076a8] OS_pTLS		r0 = OS_pTLS
+   0x80106f6c: 0xe5941008     LDR       r1, [r4, #0x8]												r1 = OS_Global.pCurrentTask
+   0x80106f70: 0xe5902000     LDR       r2, [r0]														r2 = *OS_pTLS
+   0x80106f74: 0xe5812034     STR       r2, [r1, #0x34]												OS_Global.pCurrentTask->pTLS = *OS_pTLS
+   0x80106f78: 0xe5805000     STR       r5, [r0]														*OS_pTLS = 0
+   
+OS_ChangeTask_4:    
+   0x80106f7c: 0xe5d40025     LDRB      r0, [r4, #0x25]												r0 = OS_Global.TimeSliceAtStart
+   0x80106f80: 0xe3500000     CMP       r0, #0															if(OS_Global.TimeSliceAtStart == 0)
+   0x80106f84: 0x0a000007     BEQ       0x80106fa8															goto OS_ChangeTask_6;		
+					// 保存当前任务未用完的时间片信息   
+   0x80106f88: 0xe5d41024     LDRB      r1, [r4, #0x24]												r1 = OS_Global.TimeSlice
+   0x80106f8c: 0xe5940008     LDR       r0, [r4, #0x8]												r0 = OS_Global.pCurrentTask
+   0x80106f90: 0xe5c0102c     STRB      r1, [r0, #0x2c]												OS_Global.pCurrentTask->TimeSliceRem = OS_Global.TimeSlice
+   0x80106f94: 0xe59f0704     LDR       r0, [pc, #0x704]        ; [0x801076a0] OS_Global	r0 = &OS_Global
+
+   						; 检查是否存在轮询调度
+   0x80106f98: 0xe5d00004     LDRB      r0, [r0, #0x4]												r0 = OS_Global.RoundRobin
+   0x80106f9c: 0xe3500000     CMP       r0, #0															if(OS_Global.RoundRobin == 0)
+   0x80106fa0: 0x0a000000     BEQ       0x80106fa8															goto OS_ChangeTask_6;
+   						; 执行轮询调度
+   0x80106fa4: 0xebffff5c     BL        _OS_DoRR                ; 0x80106d1c					_OS_DoRR()
+   
+OS_ChangeTask_6:    
+							; 统计当前任务 pCurrentTask 被抢占的次数
+   0x80106fa8: 0xe5940008     LDR       r0, [r4, #0x8]												r0 = OS_Global.pCurrentTask
+   0x80106fac: 0xe3500000     CMP       r0, #0															if(OS_Global.pCurrentTask == NULL)
+   0x80106fb0: 0x0a000004     BEQ       0x80106fc8															goto OS_ChangeTask_7;
+   0x80106fb4: 0xe5d01010     LDRB      r1, [r0, #0x10]												r1 = OS_Global.pCurrentTask.Stat
+   0x80106fb8: 0xe3510000     CMP       r1, #0															if(r1 == 0)
+   																													{
+   0x80106fbc: 0x05901028     LDREQ     r1, [r0, #0x28]													r1 = OS_Global.pCurrentTask.NumPreemptions;
+   0x80106fc0: 0x02811001     ADDEQ     r1, r1, #1															r1 = r1 + 1
+   0x80106fc4: 0x05801028     STREQ     r1, [r0, #0x28]													OS_Global.pCurrentTask.NumPreemptions ++;
+   																													}
+OS_ChangeTask_7:   
+							; 检查下一个激活任务 pActiveTask 是否存在
+   0x80106fc8: 0xe5940010     LDR       r0, [r4, #0x10]												r0 = OS_Global.pActiveTask
+   0x80106fcc: 0xe3500000     CMP       r0, #0															if(OS_Global.pActiveTask == NULL)
+   0x80106fd0: 0x0a000022     BEQ       0x80107060															goto OS_ChangeTask_8;		// 下一个激活任务为空
+   
+   0x80106fd4: 0xea000002     B         0x80106fe4														goto OS_ChangeTask_9;
+   
+OS_ChangeTask_loop:   
+					; 从OS_Global.pActiveTask遍历任务列表( 通过 pNext)
+					; 取出OS_Global.pActiveTask的任务链表中的下一个任务, 并将其设置为下一个激活任务
+   0x80106fd8: 0xe5960000     LDR       r0, [r6]														r0 = 	OS_Global.pActiveTask->pNext											
+   0x80106fdc: 0xe5840010     STR       r0, [r4, #0x10]												OS_Global.pActiveTask = r0 
+   
+   0x80106fe0: 0xe321f013     MSR       CPSR_c, #19             ; 0x13							CPSR_c = 0x13;		// 允许中断, Supervisor模式
+   
+OS_ChangeTask_9:    
+							;	下一个激活任务 pActiveTask 存在
+   0x80106fe4: 0xe321f093     MSR       CPSR_c, #147            ; 0x93							CPSR_c = 0x93;		// 禁止中断, 切换到Supervisor模式
+   						;  检查激活任务 pActiveTask是否存在. 如果存在, 判断激活任务的Stat位
+   0x80106fe8: 0xe5946010     LDR       r6, [r4, #0x10]												r6 = OS_Global.pActiveTask
+   0x80106fec: 0xe3560000     CMP       r6, #0															if(OS_Global.pActiveTask != NULL)
+   																													{
+   																														// 检查激活任务的Stat位
+   0x80106ff0: 0x15d67010     LDRBNE    r7, [r6, #0x10]													r7 = OS_Global.pActiveTask->Stat;
+   0x80106ff4: 0x13570000     CMPNE     r7, #0																if(r7 == 0)
+   0x80106ff8: 0x0a000019     BEQ       0x80107064																goto OS_ChangeTask_11;
+   																													}
+   																													else
+   																													 		goto OS_ChangeTask_11;   		
+   					   ; 激活任务的Stat不为0
+   					   ; 检查Stat的bit2是否为0, 即是否等待超时 																								 																													
+   0x80106ffc: 0xe3170004     TST       r7, #4															if( (OS_Global.pActiveTask->Stat & 0x04) == 0 )
+   0x80107000: 0x0a00000d     BEQ       0x8010703c																goto OS_ChangeTask_12;
+    
+   						; Stat的bit2不为0, 任务等待某个超时时刻 OS_Delay 
+   						; 比较任务的超时时刻 Timeout 是否小于或等于 当前系统时间 (OS_Global.Time). 若是, 
+   0x80107004: 0xe596000c     LDR       r0, [r6, #0xc]												r0 = OS_Global.pActiveTask->Timeout
+   0x80107008: 0xe594101c     LDR       r1, [r4, #0x1c]												r1 = OS_Global.Time
+   0x8010700c: 0xe0401001     SUB       r1, r0, r1														r1 = r0 - r1
+   0x80107010: 0xe3510001     CMP       r1, #1															if( (r0 - r1) >= 1 )
+   0x80107014: 0xaa000005     BGE       0x80107030															goto OS_ChangeTask_13;		// 未超时
+   
+   						; 已超时, 执行 OS_MakeTaskReady (OS_Global.pActiveTask)将该任务置为ready
+   0x80107018: 0xe1a00006     MOV       r0, r6															r0 = OS_Global.pActiveTask
+   0x8010701c: 0xeb0000f1     BL        OS_MakeTaskReady        ; 0x801073e8					OS_MakeTaskReady (OS_Global.pActiveTask)
+   0x80107020: 0xe5d60010     LDRB      r0, [r6, #0x10]												r0 = OS_Global.pActiveTask->Stat
+   0x80107024: 0xe3500000     CMP       r0, #0															if(OS_Global.pActiveTask->Stat != 0)
+   0x80107028: 0x1a000003     BNE       0x8010703c															goto OS_ChangeTask_12;
+   						; 	激活任务的Stat为0, 即ready状态	
+   0x8010702c: 0xea00000b     B         0x80107060														goto OS_ChangeTask_8;
+   
+OS_ChangeTask_13:    
+   0x80107030: 0xe5941020     LDR       r1, [r4, #0x20]												r1 = OS_Global.TimeDex;
+   0x80107034: 0xe0501001     SUBS      r1, r0, r1														r1 = OS_Global.pActiveTask.Timeout - OS_Global.TimeDex
+   0x80107038: 0x45840020     STRMI     r0, [r4, #0x20]												if(r1 < 0)	
+   																														OS_Global.TimeDex = OS_Global.pActiveTask->Timeout;
+OS_ChangeTask_12:   
+							;	检查任务是否等待其他(通过pWaitList访问)  (OS_RSEMA)
+   0x8010703c: 0xe20700fb     AND       r0, r7, #251            ; 0xfb							r0 = r7 & 0xFB = OS_Global.pActiveTask->Stat & 0xFb 
+   0x80107040: 0xe3500010     CMP       r0, #16                 ; 0x10							if(r0 != 16)
+   0x80107044: 0x1affffe3     BNE       0x80106fd8															goto OS_ChangeTask_loop
+   
+   						; 任务通过pWaitList等待其他事件对象 (OS_RSEMA)
+   0x80107048: 0xe5960008     LDR       r0, [r6, #0x8]												r0 = OS_Global.pActiveTask->pWaitList
+   0x8010704c: 0xe5900008     LDR       r0, [r0, #0x8]												OS_RSEMA *pResm = r0 = OS_Global.pActiveTask->pWaitList->pWaitObj
+   0x80107050: 0xe5900004     LDR       r0, [r0, #0x4]												OS_TASK *pTask = r0 = pResm->pTask
+   0x80107054: 0xe5d00010     LDRB      r0, [r0, #0x10]												r0 = Stat = pTask->Stat
+   0x80107058: 0xe3500000     CMP       r0, #0															if(pTask->Stat != 0)
+   0x8010705c: 0x1affffdd     BNE       0x80106fd8															goto OS_ChangeTask_loop;
+   
+OS_ChangeTask_8:   
+   0x80107060: 0xe321f093     MSR       CPSR_c, #147            ; 0x93									; 关中断,切换到Supervisor模式
+   
+OS_ChangeTask_11:    
+							; 检查是否Preempion不为0
+   0x80107064: 0xe5d40006     LDRB      r0, [r4, #0x6]														r0 = OS_Global.Preempion
+   0x80107068: 0xe3500000     CMP       r0, #0																	if(OS_Global.Preempion != 0)
+   0x8010706c: 0x1a00000d     BNE       0x801070a8																	goto OS_ChangeTask_20;
+
+OS_ChangeTask_task_40:
+   0x80107070: 0xe59f0634     LDR       r0, [pc, #0x634]        ; [0x801076ac] OS_TickStep		r0 = &OS_TickStep
+   0x80107074: 0xe5d01000     LDRB      r1, [r0]																r0 = OS_TickStep
+   0x80107078: 0xe3110001     TST       r1, #1																	if( (OS_TickStep & 1) == 0)
+   0x8010707c: 0x0a000025     BEQ       0x80107118																	goto OS_ChangeTask_21;
+   
+   						; OS_TickStep 固定为0,没有使用
+   0x80107080: 0xe321f093     MSR       CPSR_c, #147            ; 0x93
+   0x80107084: 0xe59f1624     LDR       r1, [pc, #0x624]        ; [0x801076b0] OS_TickStepTime
+   0x80107088: 0xe59f2610     LDR       r2, [pc, #0x610]        ; [0x801076a0] OS_Global
+   0x8010708c: 0xe5913000     LDR       r3, [r1]
+   0x80107090: 0xe592c01c     LDR       r12, [r2, #0x1c]
+   0x80107094: 0xe043300c     SUB       r3, r3, r12
+   0x80107098: 0xe3530001     CMP       r3, #1
+   0x8010709c: 0xaa00001d     BGE       0x80107118
+   0x801070a0: 0xe592301c     LDR       r3, [r2, #0x1c]
+   0x801070a4: 0xea000007     B         0x801070c8
+   
+OS_ChangeTask_20:  
+			; 循环直到 OS_Global.Preemption == 0
+   0x801070a8: 0xe1a00004     MOV       r0, r4														; r0 = r4 = &OS_Global
+   0x801070ac: 0xebffff43     BL        _CheckDelays            ; 0x80106dc0				_CheckDelays (&OS_Global)
+   0x801070b0: 0xe5d40006     LDRB      r0, [r4, #0x6]											r0 = OS_Global.Preemption
+   0x801070b4: 0xe3500000     CMP       r0, #0														if(OS_Global.Preemption != 0)
+   0x801070b8: 0x1afffffa     BNE       0x801070a8														goto OS_ChangeTask_20
+   
+   0x801070bc: 0xeaffffeb     B         0x80107070													goto OS_ChangeTask_task_40;
+  
+   0x801070c0: 0xe582301c     STR       r3, [r2, #0x1c]											
+   0x801070c4: 0xe321f013     MSR       CPSR_c, #19             ; 0x13
+   0x801070c8: 0xe5d0c000     LDRB      r12, [r0]
+   0x801070cc: 0xe31c0001     TST       r12, #1
+   0x801070d0: 0x0a00000f     BEQ       0x80107114
+   0x801070d4: 0xe321f093     MSR       CPSR_c, #147            ; 0x93
+   0x801070d8: 0xe5d0c000     LDRB      r12, [r0]
+   0x801070dc: 0xe31c0002     TST       r12, #2
+   0x801070e0: 0x0afffff6     BEQ       0x801070c0
+   0x801070e4: 0xe5d0c000     LDRB      r12, [r0]
+   0x801070e8: 0xe3ccc002     BIC       r12, r12, #2
+   0x801070ec: 0xe5c0c000     STRB      r12, [r0]
+   0x801070f0: 0xe321f013     MSR       CPSR_c, #19             ; 0x13
+   0x801070f4: 0xe592001c     LDR       r0, [r2, #0x1c]
+   0x801070f8: 0xe1530000     CMP       r3, r0
+   0x801070fc: 0x0afffffc     BEQ       0x801070f4
+   0x80107100: 0xe582301c     STR       r3, [r2, #0x1c]
+   0x80107104: 0xe5910000     LDR       r0, [r1]
+   0x80107108: 0xe2800001     ADD       r0, r0, #1
+   0x8010710c: 0xe5810000     STR       r0, [r1]
+   0x80107110: 0xe5820020     STR       r0, [r2, #0x20]
+   0x80107114: 0xe321f093     MSR       CPSR_c, #147            ; 0x93
+   
+ OS_ChangeTask_21:   
+   0x80107118: 0xe5c45005     STRB      r5, [r4, #0x5]													OS_Global.TaskSwitch = 0	(r5 = 0)
+   0x8010711c: 0xe5940010     LDR       r0, [r4, #0x10]													r0 = OS_Global.pActiveTask
+   0x80107120: 0xe3500000     CMP       r0, #0																if(OS_Global.pActiveTask == NULL)
+   0x80107124: 0x0a000029     BEQ       0x801071d0																goto OS_ChangeTask_22;
+   0x80107128: 0xe5940010     LDR       r0, [r4, #0x10]													r0 = OS_Global.pActiveTask
+   0x8010712c: 0xe5d00010     LDRB      r0, [r0, #0x10]													r0 = OS_Global.pActiveTask->Stat
+   0x80107130: 0xe3500000     CMP       r0, #0																if(OS_Global.pActiveTask->Stat != 0)
+ 																															{
+   0x80107134: 0xe5940010     LDR       r0, [r4, #0x10]														OS_TASK *pTask = r0 = OS_Global.pActiveTask
+   0x80107138: 0x15900008     LDRNE     r0, [r0, #0x8]														r0 = OS_Global.pActiveTask->pWaitList
+   0x8010713c: 0x15900008     LDRNE     r0, [r0, #0x8]														OS_RSEMA *pResm = r0 = OS_Global.pActiveTask->pWaitList->pWaitObj
+   0x80107140: 0x15900004     LDRNE     r0, [r0, #0x4]														OS_TASK *pTask = r0 = pResm->pTask
+																															}
+																															else
+																																OS_TASK *pTask = r0 = OS_Global.pActiveTask
+															; 设置当前任务	 pCurrentTask																	
+   0x80107144: 0xe5840008     STR       r0, [r4, #0x8]													OS_Global.pCurrentTask = r0 = pTask
+   														; 检查当前任务的id字段是否是0x64
+   0x80107148: 0xe5d00038     LDRB      r0, [r0, #0x38]													r0 = OS_Global.pCurrentTask->id
+   0x8010714c: 0xe3500064     CMP       r0, #100                ; 0x64								if( OS_Global.pCurrentTask->id == 0x64 )
+   0x80107150: 0x0a000001     BEQ       0x8010715c																goto OS_ChangeTask_id_ok;
+   0x80107154: 0xe3a00080     MOV       r0, #128                ; 0x80
+   0x80107158: 0xeb004110     BL        OS_Error                ; 0x801175a0
+   
+OS_ChangeTask_id_ok:   
+   0x8010715c: 0xe5940008     LDR       r0, [r4, #0x8]													r0 = OS_Global.pCurrentTask
+   										; 检查pCurrentTask的栈, (栈底部的值为0xcd)
+   0x80107160: 0xe5900020     LDR       r0, [r0, #0x20]													r0 = OS_Global.pCurrentTask->pStackBot
+   0x80107164: 0xe5d00000     LDRB      r0, [r0]															r0 = OS_Global.pCurrentTask->pStackBot[0];
+   0x80107168: 0xe35000cd     CMP       r0, #205                ; 0xcd								if(r0 = 0xcd)
+   0x8010716c: 0x0a000001     BEQ       0x80107178																goto OS_ChangeTask_task_stack_ok;
+   0x80107170: 0xe3a00078     MOV       r0, #120                ; 0x78
+   0x80107174: 0xeb004109     BL        OS_Error                ; 0x801175a0						OS_Error (0x78)
+OS_ChangeTask_task_stack_ok:   
+											; 检查pCurrentTask的pExtendContext是否存在(pExtendContext未使用, 固定为0)
+   0x80107178: 0xe5940008     LDR       r0, [r4, #0x8]													r0 = OS_Global.pCurrentTask
+   0x8010717c: 0xe5901030     LDR       r1, [r0, #0x30]													r1 = OS_Global.pCurrentTask.pExtendContext
+   0x80107180: 0xe3510000     CMP       r1, #0																pExtendContext未使用, 固定为0
+   																														
+   0x80107184: 0x15911004     LDRNE     r1, [r1, #0x4]																							
+   0x80107188: 0x13510000     CMPNE     r1, #0
+   0x8010718c: 0x0a000001     BEQ       0x80107198															goto OS_ChangeTask_task_30;
+   0x80107190: 0xe5900004     LDR       r0, [r0, #0x4]
+   0x80107194: 0xe12fff31     BLX       r1
+   
+OS_ChangeTask_task_30:   
+									; 将pCurrentTask当前任务的pTLS设置为系统的OS_pTLS
+   0x80107198: 0xe5940008     LDR       r0, [r4, #0x8]													r0 = OS_Global.pCurrentTask
+   0x8010719c: 0xe59f1504     LDR       r1, [pc, #0x504]        ; [0x801076a8] OS_pTLS			r1 = OS_pTLS
+   0x801071a0: 0xe5900034     LDR       r0, [r0, #0x34]													r0 = OS_Global.pCurrentTask->pTLS
+   0x801071a4: 0xe59f24f4     LDR       r2, [pc, #0x4f4]        ; [0x801076a0] OS_Global		r2 = OS_Global
+   0x801071a8: 0xe5810000     STR       r0, [r1]															OS_pTLS = OS_Global.pCurrentTask->pTLS
+   
+   								; 将当前任务的时间片设置为
+   0x801071ac: 0xe5940008     LDR       r0, [r4, #0x8]											r0 = OS_Global.pCurrentTask
+   0x801071b0: 0xe5d0002c     LDRB      r0, [r0, #0x2c]											r0 = OS_Global.pCurrentTask->TimeSliceRem
+   0x801071b4: 0xe5c40024     STRB      r0, [r4, #0x24]											OS_Global.TimeSlice = OS_Global.pCurrentTask->TimeSliceRem
+   0x801071b8: 0xe5c40025     STRB      r0, [r4, #0x25]											OS_Global.TimeSliceAtStart = OS_Global.pCurrentTask->TimeSliceRem
+   ;									累加当前任务的活跃计数 + 1
+   0x801071bc: 0xe5920008     LDR       r0, [r2, #0x8]											r0 = OS_Global.pCurrentTask
+   0x801071c0: 0xe5901024     LDR       r1, [r0, #0x24]											r1 = OS_Global.pCurrentTask->NumActivations
+   0x801071c4: 0xe2811001     ADD       r1, r1, #1													r1 = r1 + 1
+   0x801071c8: 0xe5801024     STR       r1, [r0, #0x24]											OS_Global.pCurrentTask->NumActivations ++
+   0x801071cc: 0xea000007     B         0x801071f0													goto OS_ChangeTask_exit;
+ 
+ OS_ChangeTask_22:   
+ 										; 没有任务调度, 调用OS_Idle
+ 										; r5 = 0
+   0x801071d0: 0xe5c45025     STRB      r5, [r4, #0x25]											OS_Global.TimeSliceAtStart = 0;
+   0x801071d4: 0xe5c45024     STRB      r5, [r4, #0x24]											OS_Global.TimeSlice = 0;
+   0x801071d8: 0xe5845008     STR       r5, [r4, #0x8]											OS_Global.pCurrentTask = 0;
+   0x801071dc: 0xe5c45000     STRB      r5, [r4]													OS_Global.Cnt.Region = 0;
+   0x801071e0: 0xe321f013     MSR       CPSR_c, #19             ; 0x13						开中断, Supervisor
+   0x801071e4: 0xeb004080     BL        OS_Idle                 ; 0x801173ec			
+   
+   0x801071e8: 0xe3a00077     MOV       r0, #119                ; 0x77
+   0x801071ec: 0xeb0040eb     BL        O2017/2/14 16:43:40S_Error                ; 0x801175a0
+   
+ OS_ChangeTask_exit:   
+   0x801071f0: 0xe1a00004     MOV       r0, r4														r0 = &OS_Global
+   0x801071f4: 0xe8bd80f2     POP       {r1, r4-r7, pc}

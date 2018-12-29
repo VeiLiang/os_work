@@ -1,0 +1,539 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{c50cef11-7db6-492e-96a3-f9a41a45fea4}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Source Files\simulate">
+      <UniqueIdentifier>{99198db0-6db8-4f10-bacb-2beeb11edadd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{dd56c382-d381-4636-85b5-64e3deced1ba}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{627acd5c-aeaf-40be-8c80-f2126c9aac22}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+    <Filter Include="ucFS">
+      <UniqueIdentifier>{c3718e88-546a-4598-9892-926160a56be9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ucFS\Config">
+      <UniqueIdentifier>{29c2e5ae-96c1-42e1-a3f5-a4b11d12471e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ucFS\FS">
+      <UniqueIdentifier>{a6b0d11b-e558-4fb0-9529-6b413de3e467}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ucFS\FS\core">
+      <UniqueIdentifier>{07574a7c-8f89-491d-bc86-123f934a6152}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ucFS\FS\Driver">
+      <UniqueIdentifier>{b73ce758-5b1a-49e2-b310-da2991b5e942}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ucFS\FS\Driver\SD_MMC">
+      <UniqueIdentifier>{9e4ae9a9-83f0-4149-8a83-f61a920756b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ucFS\FS\FSL">
+      <UniqueIdentifier>{f9d141e7-c33a-47af-b145-f65862c3cd9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ucFS\FS\FSL\FAT">
+      <UniqueIdentifier>{9d955aff-d9d1-4c30-8df4-81cd95f33fcb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ucFS\FS\Code">
+      <UniqueIdentifier>{17181054-4c80-4a3e-b2ab-75141499ab97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ucFS_inc">
+      <UniqueIdentifier>{0afd5290-7cc6-45e2-aab8-ff69fb8d815c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="inc">
+      <UniqueIdentifier>{f40b1c19-4c0f-45cf-9894-174367267abb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{59c8c818-3330-4d10-9d74-a6790cc363ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test">
+      <UniqueIdentifier>{e1c16c0c-be8f-4103-8bfe-1e2e93f2a9b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="rtos">
+      <UniqueIdentifier>{8dfb2b86-16dc-4513-b067-291aaa262552}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="middleware">
+      <UniqueIdentifier>{dd107ea3-c229-4779-95a5-86a23451c3f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="middleware\common">
+      <UniqueIdentifier>{f9d6a174-52f8-4950-b20b-13cb434b59af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="middleware\gdi">
+      <UniqueIdentifier>{9045fd76-f02b-47e9-9ca4-dedd470e232f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="main">
+      <UniqueIdentifier>{337b715c-a517-4b76-844b-56a9d70a094d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="simulate\win32_fs_os.cpp">
+      <Filter>Source Files\simulate</Filter>
+    </ClCompile>
+    <ClCompile Include="simulate\win32_heap_simulate.cpp">
+      <Filter>Source Files\simulate</Filter>
+    </ClCompile>
+    <ClCompile Include="simulate\win32_kernel_simulate.cpp">
+      <Filter>Source Files\simulate</Filter>
+    </ClCompile>
+    <ClCompile Include="simulate\win32_rtos.cpp">
+      <Filter>Source Files\simulate</Filter>
+    </ClCompile>
+    <ClCompile Include="MainFrm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="uCFS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="uCFSDoc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="uCFSView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Config\ConfigDrive.c">
+      <Filter>ucFS\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Config\FS_X_Panic.c">
+      <Filter>ucFS\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS__ECC256.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_AddSpaceHex.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_AssignCache.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Attrib.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_CacheAll.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_CacheMan.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_CacheRW.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_CacheRWQuota.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_CLib.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_CopyFile.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Core.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_CreateDir.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Dir.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_DirOld.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_ErrorNo2Text.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_ErrorOut.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Format.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_FRead.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_FWrite.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_GetFilePos.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_GetFileSize.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_GetNumFiles.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_GetNumOpenFiles.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Journal.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Log.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_LogBlock.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_LogVolume.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_memcpy.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Misc.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Move.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_OS_Interface.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Partition.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Read.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Rename.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_SetEndOfFile.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_SetFilePos.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Storage.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Time.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Truncate.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Unmount.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Verify.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Volume.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Warn.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\FS_Write.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Core\ucFS_Version.c">
+      <Filter>ucFS\FS\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Driver\SD_MMC\SD_MMC_Drive_PC.c">
+      <Filter>ucFS\FS\Driver\SD_MMC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Driver\SD_MMC\SD_MMC_PC.c">
+      <Filter>ucFS\FS\Driver\SD_MMC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_API.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_CheckDisk.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_Dir.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_DirEntry.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_DiskInfo.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_Format.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_FormatSD.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_GetFileClusterSectorInfo.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_Ioct.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_LFN.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_Misc.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_Move.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_Open.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_Read.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_Rename.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_SetEndOfFile.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_VolumeLabel.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_Write.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\Code\Gbcode.c">
+      <Filter>ucFS\FS\Code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\fs_sd_test.c">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\video_item_test.c">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\message_task.c">
+      <Filter>rtos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\queue.c">
+      <Filter>rtos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\target.c">
+      <Filter>rtos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\xm_h264_cache_command_queue.c">
+      <Filter>rtos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\xm_h264_cache_file.c">
+      <Filter>rtos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\xm_h264_file.c">
+      <Filter>rtos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\xm_semaphore.c">
+      <Filter>rtos</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\middleware\common\common_chardef.c">
+      <Filter>middleware\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\middleware\common\common_chartype.c">
+      <Filter>middleware\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\middleware\common\common_rbtr.c">
+      <Filter>middleware\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\middleware\common\common_string.c">
+      <Filter>middleware\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\middleware\common\common_wstring.c">
+      <Filter>middleware\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\middleware\common\xmvideoitem.c">
+      <Filter>middleware\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\middleware\gdi\xm_file.c">
+      <Filter>middleware\gdi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\middleware\gdi\xm_kbd_drv.c">
+      <Filter>middleware\gdi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\main\os_main.c">
+      <Filter>main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FS\FSL\FAT\FAT_FreeCluster.c">
+      <Filter>ucFS\FS\FSL\FAT</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="uCFS.rc">
+      <Filter>Source Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MainFrm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="uCFS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="uCFSDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="uCFSView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\FAT.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\FAT_Intern.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\fs.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\FS_API.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\FS_CLib.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\FS_Conf.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\FS_ConfDefaults.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\FS_Debug.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\FS_Dev.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\FS_DF_X_HW.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\FS_Int.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\FS_Lbl.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\FS_OS.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\FS_Port.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\FS_Storage.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\FS_Types.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\Global.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\IDE_X_HW.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\MMC_SD_CardMode_X_HW.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\MMC_X_HW.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Inc\ucFS_Version.h">
+      <Filter>ucFS_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\ark1960.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\ark1960_testcase.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\bits.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\common.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\DmpMemory.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\fevent.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\fs_card.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\gbcode.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\printk.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\sdmmc.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\types.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\xm_h264_cache_command_queue.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\xm_h264_cache_file.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\xm_h264_file.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\xmcore.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\xmbase.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\xmfile.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\xmkey.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\xmlang.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\xmprintf.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\xmqueue.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\xmtype.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\xmuser.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\xmvideoitem.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="res\Toolbar.bmp">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="res\uCFS.ico">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="res\uCFS.rc2">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="res\uCFSDoc.ico">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="ReadMe.txt" />
+  </ItemGroup>
+</Project>

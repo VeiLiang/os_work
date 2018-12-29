@@ -1,0 +1,60 @@
+ OS_LeaveInterrupt (); 
+   0x80117498: 0xe59f007c     LDR       r0, ??DataTable2_2      ; OS_InInt				r0 = &OS_InInt
+   0x8011749c: 0xe5d00000     LDRB      r0, [r0]												r0 = OS_InInt
+   0x801174a0: 0xe2501001     SUBS      r1, r0, #1												r1 = OS_InInt - 1
+   0x801174a4: 0xe59f2070     LDR       r2, ??DataTable2_2      ; OS_InInt				r2 = &OS_InInt
+   0x801174a8: 0xe5c21000     STRB      r1, [r2]												OS_InInt = OS_InInt - 1
+   0x801174ac: 0xe6ef0070     UXTB      r0, r0													r0 = (unsigned int)((unsigned char)r0)	// 8-->32
+   0x801174b0: 0xe3500000     CMP       r0, #0													if(OS_InInt != 0)
+   0x801174b4: 0x1a000001     BNE       ??OS_irq_handler_3      ; 0x801174c0				goto ??OS_irq_handler_3;
+ OS_LeaveInterrupt (); 
+   0x801174b8: 0xe3a00098     MOV       r0, #152                ; 0x98					
+   0x801174bc: 0xeb000037     BL        OS_Error                ; 0x801175a0			OS_Error(152)
+ OS_LeaveInterrupt (); 
+??OS_irq_handler_3:
+								; 
+   0x801174c0: 0xe59f0058     LDR       r0, ??DataTable2_3      ; OS_Global			r0 = &OS_Global
+   0x801174c4: 0xe5d00001     LDRB      r0, [r0, #0x1]										r0 = OS_Global.Cnt.DI
+   0x801174c8: 0xe2500001     SUBS      r0, r0, #1												r0 = r0 - 1
+   0x801174cc: 0xe59f104c     LDR       r1, ??DataTable2_3      ; OS_Global			r1 = &OS_Global
+   0x801174d0: 0xe5c10001     STRB      r0, [r1, #0x1]										OS_Global.Cnt.DI = OS_Global.Cnt.DI - 1
+ OS_LeaveInterrupt (); 
+ 								; 检查关键区计数器.若为1, 则检查是否存在任务需要切换.
+   0x801174d4: 0xe59f0044     LDR       r0, ??DataTable2_3      ; OS_Global			r0 = &OS_Global
+   0x801174d8: 0xe5d00000     LDRB      r0, [r0]												r0 = OS_Global.Cnt.Region
+   0x801174dc: 0xe3500001     CMP       r0, #1													if(OS_Global.Cnt.Region != 1)
+   0x801174e0: 0x1a000005     BNE       ??OS_irq_handler_4      ; 0x801174fc				goto ??OS_irq_handler_4;
+   							; 关键区计数器值为1
+   							; 检查是否存在任务需要切换
+   0x801174e4: 0xe59f0034     LDR       r0, ??DataTable2_3      ; OS_Global			r0 = &OS_Global
+   0x801174e8: 0xe5900004     LDR       r0, [r0, #0x4]										r0 = OS_Global.Pending.All
+   0x801174ec: 0xe3500000     CMP       r0, #0													if(OS_Global.Pending.All == 0)
+   0x801174f0: 0x0a000001     BEQ       ??OS_irq_handler_4      ; 0x801174fc				goto ??OS_irq_handler_4;
+ OS_LeaveInterrupt (); 
+ 								; 存在任务切换
+   0x801174f4: 0xeb002d7f     BL        OS_SwitchFromInt        ; 0x80122af8		
+   0x801174f8: 0xea000004     B         ??OS_irq_handler_0      ; 0x80117510			goto ??OS_irq_handler_0
+ OS_LeaveInterrupt (); 
+??OS_irq_handler_4:
+   0x801174fc: 0xe59f001c     LDR       r0, ??DataTable2_3      ; OS_Global			r0 = &OS_Global
+   0x80117500: 0xe5d00000     LDRB      r0, [r0]												r0 = OS_Global.Cnt.Region
+   0x80117504: 0xe2500001     SUBS      r0, r0, #1												r0 = r0 - 1
+   0x80117508: 0xe59f1010     LDR       r1, ??DataTable2_3      ; OS_Global			r1 = &OS_Global
+   0x8011750c: 0xe5c10000     STRB      r0, [r1]												OS_Global.Cnt.Region --
+}	
+??OS_irq_handler_0:
+??OS_irq_handler_5:
+   0x80117510: 0xe8bd8010     POP       {r4, pc}
+   
+??DataTable2:
+   0x80117514: 0x40405000     
+??DataTable2_1:
+   0x80117518: 0x40400078     
+??DataTable2_2:
+   0x8011751c: 0x83fb5e78     
+??DataTable2_3:
+   0x80117520: 0x817133d4    
+??DataTable2_4:
+   0x80117524: 0x83fb45d0     
+??DataTable2_5:
+   0x80117528: 0x40400040     

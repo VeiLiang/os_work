@@ -1,0 +1,129 @@
+_CheckDelays:
+					; 抢占式调度
+					
+						; r0 = &OS_Global
+   0x80106dc0: 0xe92d4070     PUSH      {r4-r6, lr}
+   
+   					; 清除 抢占式调度标志 OS_Global.Preemption = 0
+   0x80106dc4: 0xe1a04000     MOV       r4, r0																r4 = &OS_Global
+   0x80106dc8: 0xe3a05000     MOV       r5, #0																r5 = 0
+   0x80106dcc: 0xe5c45006     STRB      r5, [r4, #0x6]													OS_Global.Preemption = 0
+   
+   					; 更新下一次抢占度调度的时刻 OS_Global.TimeDex = OS_Global.Time + 4000;		// 4秒
+   0x80106dd0: 0xe594001c     LDR       r0, [r4, #0x1c]													r0 = OS_Global.Time
+   0x80106dd4: 0xe59f68c8     LDR       r6, [pc, #0x8c8]        ; [0x801076a4] OS_InTimer		r6 = &OS_InTimer
+   0x80106dd8: 0xe2800efa     ADD       r0, r0, #4000           ; 0xfa0								
+   0x80106ddc: 0xe5840020     STR       r0, [r4, #0x20]													OS_Global.TimeDex = OS_Global.Time + 4000;
+   0x80106de0: 0xea000010     B         0x80106e28															goto _CheckDelays_1;
+ 
+ _CheckDelays_10:  
+ 										; r0 = pTimer
+ 										; pTimer已超时, 将pTimer从TIMER链表中移除, 若Hook存在, 调用Hook函数
+   0x80106de4: 0xe5840018     STR       r0, [r4, #0x18]										OS_Global.pCurrentTimer = pTimer;
+   0x80106de8: 0xe5901000     LDR       r1, [r0]												pNext = r1 = pTimer->pNext;
+   0x80106dec: 0xe5841014     STR       r1, [r4, #0x14]										OS_Global.pTimer = pTimer->pNext;
+   0x80106df0: 0xe5c05010     STRB      r5, [r0, #0x10]										pTimer->Active = 0		// // 将Timer置为不活跃
+   0x80106df4: 0xe5940018     LDR       r0, [r4, #0x18]										r0 = OS_Global.pCurrentTimer
+   0x80106df8: 0xe5805008     STR       r5, [r0, #0x8]										OS_Global.pCurrentTimer->Time = 0
+   0x80106dfc: 0xe321f013     MSR       CPSR_c, #19             ; 0x13					开中断
+   0x80106e00: 0xe5d60000     LDRB      r0, [r6]												r0 = OS_InTimer
+   0x80106e04: 0xe2800001     ADD       r0, r0, #1												r0 = r0 + 1
+   0x80106e08: 0xe5c60000     STRB      r0, [r6]												OS_InTimer ++;
+   0x80106e0c: 0xe5940018     LDR       r0, [r4, #0x18]										pTimer = r0 = OS_Global.pCurrentTimer
+   0x80106e10: 0xe5900004     LDR       r0, [r0, #0x4]										r0 = pTimer->Hook
+   0x80106e14: 0xe12fff30     BLX       r0														(*pTimer->Hook)
+   0x80106e18: 0xe5d60000     LDRB      r0, [r6]												r0 = OS_InTimer
+   0x80106e1c: 0xe2400001     SUB       r0, r0, #1												r0 = r0 - 1
+   0x80106e20: 0xe5c60000     STRB      r0, [r6]												OS_InTimer --;
+   0x80106e24: 0xe321f093     MSR       CPSR_c, #147            ; 0x93					关中断
+   
+_CheckDelays_1:   
+										; 遍历每个系统定时器, 检查其超时时间是否大于系统时间
+										; 检查系统定时器 OS_Global.pTimer 是否为空. 
+   0x80106e28: 0xe5940014     LDR       r0, [r4, #0x14]												OS_TIMER *pTimer = OS_Global.pTimer;
+   0x80106e2c: 0xe3500000     CMP       r0, #0															if(pTimer == NULL)
+   0x80106e30: 0x0a000006     BEQ       0x80106e50															goto _CheckDelays_2;
+   
+   									// 检查定时器 pTimer 是否超时(大于系统时间)
+   0x80106e34: 0xe5901008     LDR       r1, [r0, #0x8]										r1 = pTimer->Time
+   0x80106e38: 0xe594201c     LDR       r2, [r4, #0x1c]										r2 = OS_Global.Time
+   0x80106e3c: 0xe0411002     SUB       r1, r1, r2												r1 = r1 - r2 = pTimer->Time - OS_Global.Time
+   									// 检查pTimer是否超时 (pTimer->Time  <= OS_Global.Time)
+   0x80106e40: 0xe3510001     CMP       r1, #1													if( (pTimer->Time - OS_Global.Time) < 1 )
+   0x80106e44: 0xbaffffe6     BLT       0x80106de4													goto _CheckDelays_10;	
+   
+   									; 定时器的超时时间大于当前的系统时间
+   									; 取出定时器的超时时刻并设置为下一次的抢占式调度时刻
+   0x80106e48: 0xe5900008     LDR       r0, [r0, #0x8]										r0 = pTimer->Time
+   0x80106e4c: 0xe5840020     STR       r0, [r4, #0x20]										OS_Global.TimeDex = pTimer->Time
+   
+_CheckDelays_2:   
+   0x80106e50: 0xe321f013     MSR       CPSR_c, #19             ; 0x13					CPSR_c = 0x13, 开中断, supervisor	
+   
+   					; 从TASK链表的第一个单元开始遍历任务队列	
+   0x80106e54: 0xe594500c     LDR       r5, [r4, #0xc]										pTask = r5 = OS_Global.pTask
+   0x80106e58: 0xea00001c     B         0x80106ed0												goto _CheckDelays_3;
+
+_CheckDelays_loop:   
+   0x80106e5c: 0xe321f093     MSR       CPSR_c, #147            ; 0x93					CPSR_c = 0x93, 关中断, supervisor	
+   				; 检查是否存在活跃的任务 OS_Global.pActiveTask
+   0x80106e60: 0xe5940010     LDR       r0, [r4, #0x10]										r0 = OS_Global.pActiveTask
+   0x80106e64: 0xe3500000     CMP       r0, #0													if(OS_Global.pActiveTask == 0)
+   0x80106e68: 0x0a000004     BEQ       0x80106e80													goto _CheckDelays_4;
+  					; 比较pTask的优先级与OS_Global.pActiveTask的优先级
+  					; 若pTask的优先级 < pActiveTask的优先级, 遍历结束, 返回
+   0x80106e6c: 0xe5d50011     LDRB      r0, [r5, #0x11]										r0 = pTask->Priority
+   0x80106e70: 0xe5941010     LDR       r1, [r4, #0x10]										r1 = OS_Global.pActiveTask
+   0x80106e74: 0xe5d11011     LDRB      r1, [r1, #0x11]										r1 = OS_Global.pActiveTask->Priority
+   0x80106e78: 0xe1500001     CMP       r0, r1													if(pTask->Priority < OS_Global.pActiveTask->Priority)
+   0x80106e7c: 0x3a000016     BCC       0x80106edc													goto _CheckDelays_exit;	// 遍历结束, 返回
+
+_CheckDelays_4:   
+							; pTask的优先级 >= pActiveTask的优先级
+							; 检查pTask是否等待超时 (Stat的bit2为1)
+   0x80106e80: 0xe5d50010     LDRB      r0, [r5, #0x10]										stat = r0 = pTask->Stat
+   0x80106e84: 0xe3100004     TST       r0, #4													if( (pTask->Stat & 0x04) == 0)
+   0x80106e88: 0x0a00000e     BEQ       0x80106ec8													goto _CheckDelays_5;		
+   
+   						; 检查pTask是否已等待超时. 若是, 将其置为ready( OS_MakeTaskReady )
+   						; pTask的超时时间 pTask->Timeout 是否小于或等于系统时间 OS_Global.Time
+   0x80106e8c: 0xe595000c     LDR       r0, [r5, #0xc]										r0 = pTask->Timeout
+   0x80106e90: 0xe594101c     LDR       r1, [r4, #0x1c]										r1 = OS_Global.Time
+   0x80106e94: 0xe0400001     SUB       r0, r0, r1												r0 = r0 - r1
+   0x80106e98: 0xe3500001     CMP       r0, #1													if( (pTask->Timeout - OS_Global.Time) >= 1 )
+   0x80106e9c: 0xaa000005     BGE       0x80106eb8													goto _CheckDelays_6;
+   						; pTask已超时
+   						; 将其置为ready( OS_MakeTaskReady )		
+   0x80106ea0: 0xe1a00005     MOV       r0, r5
+   0x80106ea4: 0xeb00014f     BL        OS_MakeTaskReady        ; 0x801073e8
+   
+   						; 关中断
+   0x80106ea8: 0xe321f093     MSR       CPSR_c, #147            ; 0x93					关中断
+   
+   						; 检查任务是否已准备 (ready). 若任务已Ready, 
+   0x80106eac: 0xe5d50010     LDRB      r0, [r5, #0x10]										r0 = pTask->Stat
+   0x80106eb0: 0xe3500000     CMP       r0, #0													if(pTask->Stat == 0)
+   0x80106eb4: 0x0a000008     BEQ       0x80106edc													goto _CheckDelays_exit;
+
+_CheckDelays_6:    
+							; 若任务的超时时间 < 系统的超时时限(OS_Global.TimeDex), 更新系统的下一次超时时限. 
+   0x80106eb8: 0xe595000c     LDR       r0, [r5, #0xc]										r0 = pTask->Timeout
+   0x80106ebc: 0xe5941020     LDR       r1, [r4, #0x20]										r1 = OS_Global.TimeDex
+   0x80106ec0: 0xe0501001     SUBS      r1, r0, r1												r1 = pTask->Timeout - OS_Global.TimeDex
+   0x80106ec4: 0x45840020     STRMI     r0, [r4, #0x20]										if( pTask->Timeout < OS_Global.TimeDex )
+   																												OS_Global.TimeDex = pTask->Timeout
+   
+_CheckDelays_5:   
+   0x80106ec8: 0xe321f013     MSR       CPSR_c, #19             ; 0x13					开中断
+   
+   							; 取出任务链表的下一个任务单元
+   0x80106ecc: 0xe5955000     LDR       r5, [r5]												pTask = r5 = pTask->pNext
+   
+_CheckDelays_3:   
+   0x80106ed0: 0xe3550000     CMP       r5, #0													if(pTask != NULL)
+   0x80106ed4: 0x1affffe0     BNE       0x80106e5c													goto _CheckDelays_loop;
+   
+   0x80106ed8: 0xe321f093     MSR       CPSR_c, #147            ; 0x93
+  
+_CheckDelays_exit:   
+   0x80106edc: 0xe8bd8070     POP       {r4-r6, pc}

@@ -1,0 +1,53 @@
+OS_ClearWaitObj:
+	; r0 = (OS_WAIT_OBJ *)pWaitObj
+   0x80142510: 0xe92d4010     PUSH      {r4, lr}															; 保护现场
+   0x80142514: 0xe1a04000     MOV       r4, r0  ; 															r4 = pWaitObj
+   0x80142518: 0xea000001     B         0x80142524	; 														goto OS_ClearWaitObj_1
+   
+   			; 遍历pWaitObj的pWaitList链表(双向链表), pWaitList链表中的每个pWaitList单元均指向一个在该OS_WAIT_OBJ上等待的Task
+   			; 将每个等待的Task取出, 调用 OS_MakeTaskReady 将其置为 ready
+   
+OS_ClearWaitObj_2:   
+   0x8014251c: 0xe590000c     LDR       r0, [r0, #0xc]													; r0 = pWaitObj->pWaitList->pTask
+   0x80142520: 0xebff13b0     BL        OS_MakeTaskReady        ; 0x801073e8						; OS_MakeTaskReady (pWaitObj->pWaitList->pTask)
+   
+OS_ClearWaitObj_1:   
+																															; 关中断, 保护下面的操作
+																															; CPSR_c =  CPSR | 0x80		
+   0x80142524: 0xe10f0000     MRS       r0, CPSR
+   0x80142528: 0xe3800080     ORR       r0, r0, #128            ; 0x80
+   0x8014252c: 0xe121f000     MSR       CPSR_c, r0
+   
+   																														; 从pWaitList取出下一个等待的Task	
+   0x80142530: 0xe5940000     LDR       r0, [r4]															; r0 = pWaitObj->pWaitList
+   0x80142534: 0xe3500000     CMP       r0, #0																; if(pWaitObj->pWaitList != NULL)
+   0x80142538: 0x1afffff7     BNE       0x8014251c																	goto OS_ClearWaitObj_2;
+   0x8014253c: 0xe59f402c     LDR       r4, [pc, #0x2c]         ; [0x80142570] OS_Global		; r4 = &OS_Global
+   0x80142540: 0xe5d40001     LDRB      r0, [r4, #0x1]													; r0 = OS_Global.Cnt.DI;
+   0x80142544: 0xe31000f0     TST       r0, #240                ; 0xf0								; if((r0 & 0xF0) == 0)		; 检查DI关中断次数是否溢出,> 16
+   0x80142548: 0x0a000001     BEQ       0x80142554															;		goto OS_ClearWaitObj_3
+   0x8014254c: 0xe3a00099     MOV       r0, #153                ; 0x99								; OS_Error(0x99)
+   0x80142550: 0xebff5412     BL        OS_Error                ; 0x801175a0
+OS_ClearWaitObj_3:   
+   0x80142554: 0xe5d40001     LDRB      r0, [r4, #0x1]													; r0 = OS_Global.Cnt.DI;
+   0x80142558: 0xe3500000     CMP       r0, #0																; if(r0 != 0)	; 检查中断禁止计数器是否不为0
+   0x8014255c: 0x1a000002     BNE       0x8014256c															; 		goto OS_ClearWaitObj_4;
+   																														; 中断禁止计数器为0
+   0x80142560: 0xe10f0000     MRS       r0, CPSR															; 开中断
+   0x80142564: 0xe3c00080     BIC       r0, r0, #128            ; 0x80								
+   0x80142568: 0xe121f000     MSR       CPSR_c, r0															; CPSR_c = CPSR & ~0x80
+OS_ClearWaitObj_4:   
+   0x8014256c: 0xe8bd8010     POP       {r4, pc}															; 恢复现场
+   0x80142570: 0x817133d4     LDRSBHI   r3, [r1, #-0x34]!
+   
+OS_ClearWaitObj_FromTask:
+   0x80142574: 0xe92d4010     PUSH      {r4, lr}
+   0x80142578: 0xe1a04000     MOV       r4, r0
+   0x8014257c: 0xea000002     B         0x8014258c
+   0x80142580: 0xe5940000     LDR       r0, [r4]
+   0x80142584: 0xe590000c     LDR       r0, [r0, #0xc]
+   0x80142588: 0xebff1396     BL        OS_MakeTaskReady        ; 0x801073e8
+   0x8014258c: 0xe5940000     LDR       r0, [r4]
+   0x80142590: 0xe3500000     CMP       r0, #0
+   0x80142594: 0x1afffff9     BNE       0x80142580
+   0x80142598: 0xe8bd8010     POP       {r4, pc}

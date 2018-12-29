@@ -1,0 +1,1 @@
+arkn141_update_package_builder.exe rtos.bin update.bin arkn141.ini

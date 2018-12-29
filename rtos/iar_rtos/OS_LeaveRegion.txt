@@ -1,0 +1,49 @@
+OS_LeaveRegion:
+   0x80107328: 0xe92d4010     PUSH      {r4, lr}
+   0x8010732c: 0xe59f436c     LDR       r4, [pc, #0x36c]        ; [0x801076a0] OS_Global			r4 = &OS_Global
+   0x80107330: 0xe5d40000     LDRB      r0, [r4]																r0 = OS_Global.Cnt.Region	表示进入关键区的计数器
+   0x80107334: 0xe3500000     CMP       r0, #0																	if(OS_Global.Cnt.Region != 0)
+   0x80107338: 0x1a000001     BNE       0x80107344																	goto OS_LeaveRegion_1;
+   0x8010733c: 0xe3a00097     MOV       r0, #151                ; 0x97
+   0x80107340: 0xeb004096     BL        OS_Error                ; 0x801175a0							OS_Error (151)
+   
+OS_LeaveRegion_1:   
+   0x80107344: 0xe5d40000     LDRB      r0, [r4]																r0 = OS_Global.Cnt.Region
+   0x80107348: 0xe2400001     SUB       r0, r0, #1																r0 = r0 - 1
+   0x8010734c: 0xe5c40000     STRB      r0, [r4]																OS_Global.Cnt.Region --; 
+   0x80107350: 0xe1b00c00     LSLS      r0, r0, #24															if( (r0 << 24) != 0 )
+   0x80107354: 0x1a000019     BNE       0x801073c0																	goto OS_LeaveRegion_exit;
+   								; 关键区计数值为0
+   0x80107358: 0xe5940004     LDR       r0, [r4, #0x4]														r0 = OS_Global.Flag.RoundRobin
+   0x8010735c: 0xe3500000     CMP       r0, #0																	if(OS_Global.Flag.RoundRobin == 0)
+   0x80107360: 0x0a000016     BEQ       0x801073c0																	goto OS_LeaveRegion_exit;
+   0x80107364: 0xe10f0000     MRS       r0, CPSR																; 关中断
+   0x80107368: 0xe3800080     ORR       r0, r0, #128            ; 0x80									CPSR_c = CPSR | 0x80;
+   0x8010736c: 0xe121f000     MSR       CPSR_c, r0
+   0x80107370: 0xe5940004     LDR       r0, [r4, #0x4]														r0 = OS_Global.Flag.RoundRobin
+   0x80107374: 0xe3500000     CMP       r0, #0																	if(OS_Global.Flag.RoundRobin == 0)
+   0x80107378: 0x0a000005     BEQ       0x80107394																	goto OS_LeaveRegion_2
+   0x8010737c: 0xe3a00001     MOV       r0, #1																	r0 = 1
+   0x80107380: 0xe5c40000     STRB      r0, [r4]																OS_Global.Flag.Region = 1
+   0x80107384: 0xe1a00004     MOV       r0, r4																	r0 = &OS_Global
+   0x80107388: 0xeb006dc9     BL        OS_Switch               ; 0x80122ab4							OS_Switch(&OS_Global)
+   0x8010738c: 0xe3a00000     MOV       r0, #0																	r0 = 0
+   0x80107390: 0xe5c40000     STRB      r0, [r4]																OS_Global.Flag.Region = 0
+OS_LeaveRegion_2:   
+											; 检查DI是否溢出 ( > 16)
+   0x80107394: 0xe5d40001     LDRB      r0, [r4, #0x1]														r0 = OS_Global.Cnt.DI
+   0x80107398: 0xe31000f0     TST       r0, #240                ; 0xf0									if( (OS_Global.Cnt.DI & 0xF0) == 0)
+   0x8010739c: 0x0a000001     BEQ       0x801073a8																	goto OS_LeaveRegion_3
+   0x801073a0: 0xe3a00099     MOV       r0, #153                ; 0x99
+   0x801073a4: 0xeb00407d     BL        OS_Error                ; 0x801175a0							OS_Error (153)
+OS_LeaveRegion_3:   
+											; 检查中断禁止计数器是否为0. 若是, 开中断
+   0x801073a8: 0xe5d40001     LDRB      r0, [r4, #0x1]														r0 = OS_Global.Cnt.DI
+   0x801073ac: 0xe3500000     CMP       r0, #0																	if(OS_Global.Cnt.DI != 0)
+   0x801073b0: 0x1a000002     BNE       0x801073c0																	goto OS_LeaveRegion_exit;
+   0x801073b4: 0xe10f0000     MRS       r0, CPSR
+   0x801073b8: 0xe3c00080     BIC       r0, r0, #128            ; 0x80									CPSR_c = CPSR & ~0x80
+   0x801073bc: 0xe121f000     MSR       CPSR_c, r0
+ OS_LeaveRegion_exit:  
+   0x801073c0: 0xe8bd8010     POP       {r4, pc}
+
