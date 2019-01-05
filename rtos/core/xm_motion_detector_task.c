@@ -127,6 +127,8 @@ static void MotionTaskFun(void)
 		{
 			printf("----------->> motion start \n\r");
 			MotionTimeCount = 0;
+			stop_frame_cnt = 0;
+			move_frame_cnt = 0;
 			MotionTimerStatus = TRUE;
 			OS_RetriggerTimer(&MotionTimer);
 		}
@@ -153,7 +155,7 @@ static void MotionTaskFun(void)
 					if(!motion_start_detect_opt_flag)
 					{
 						HW_LCD_BackLightOn();
-						AP_SetMenuItem(APPMENUITEM_POWER_STATE, POWER_ON);
+						AP_SetMenuItem(APPMENUITEM_POWER_STATE, POWER_STATE_ON);
 						motion_start_detect_opt_flag = TRUE;
 						MotionDetectMoveProcess();//发送按键消息,开始录像
 					}
@@ -172,7 +174,7 @@ static void MotionTaskFun(void)
 					if(!motion_stop_detect_opt_flag)
 					{
 						HW_LCD_BackLightOff();
-						AP_SetMenuItem(APPMENUITEM_POWER_STATE, POWER_OFF);
+						AP_SetMenuItem(APPMENUITEM_POWER_STATE, POWER_STATE_OFF);
 						motion_stop_detect_opt_flag = TRUE;
 						MotionDetectNotMoveProcess();//发送按键消息,开始录像
 					}

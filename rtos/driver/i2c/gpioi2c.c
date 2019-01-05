@@ -21,7 +21,7 @@
 #include "printk.h"
 #include "target_ucos_ii.h"
 #include "gpioi2c.h"
-
+#include "board_config.h"
 
 #define	OS_ENTER_CRITICAL		OS_EnterRegion
 #define	OS_EXIT_CRITICAL		OS_LeaveRegion
@@ -628,19 +628,7 @@ static void GPIO_I2C_Module_Init(void)
  */
 void group2_i2c_pad_init(void)
 {
-	unsigned int val;
-	
-	XM_lock();
-		
-	// µÚÈý×éGPIO I2C
-	// 7116-SDA SD1_D2 ([9]	 sd1_d2	sd1_d2_pad	GPIO103	sd1_data2)
-	// 7116-SCL SD1_D3 ([10] sd1_d3	sd1_d3_pad	GPIO104	sd1_data3)
-	// pad_ctl9
-	val = rSYS_PAD_CTRL0A;
-	val &= ~( (0x03 << 0) | (0x03 << 2) );
-	rSYS_PAD_CTRL0A= val;
-		
-	XM_unlock();
+	rxchip_iic_pin_init();
 	
 	lg_pSemGPIOI2CGroup2 = OSSemCreate(1);
 }

@@ -12,6 +12,17 @@ extern "C" {
 
 //#define EN_UTC_FUN		//使能UTC功能
 
+struct _rxchip_video
+{
+	unsigned char brightness;
+	unsigned char contrast;
+	unsigned char saturation;
+	unsigned char hue;
+	unsigned char sharpness;
+	unsigned char ob;
+	unsigned char bw;
+	unsigned char reserver[9];
+};
 
 typedef struct _RXCHIPCMD
 {
@@ -24,10 +35,13 @@ typedef struct _RXCHIPCMD
 #define BEST_SATURATION 0x80
 #define BEST_HUE 		0x80
 
-#define CMD_BRIGHTNESS	0
-#define CMD_CONTRAST	1
-#define CMD_SATURATION	2
-#define CMD_HUE			3
+#define CMD_BRIGHTNESS				0
+#define CMD_CONTRAST				1
+#define CMD_SATURATION				2
+#define CMD_HUE						3
+#define CMD_SHARPNESS				4
+#define CMD_OB						5
+#define CMD_BW						6
 
 
 
@@ -40,6 +54,7 @@ void reset_check_time(void);
 u8 rxchip_get_check_flag(void);
 void rxchip_set_check_flag(u8 val);
 void rxchip_coaxitron_control(u8_t sen, u8_t res, u8_t cmd_index);
+void rxchip_set_delay_data(u8_t val);
 
 
 #ifdef __cplusplus

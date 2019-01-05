@@ -27,6 +27,8 @@ static u8 trig_change_set_perch_state = FALSE;
 
 static u8 trig_notify_delay_time = 0;
 
+extern void hw_backlight_set_auto_off_ticket (unsigned int ticket);
+
 //返回触发状态
 u8 get_trigger_det_status(void)
 {
@@ -91,9 +93,7 @@ typedef struct trig_notify_params
 }TRIG_NOTIFY_PARAMS,*TRIG_NOTIFY_PARAMS_PTR;
 static  struct trig_notify_params trig_notify_param;
 
-
 static struct trig_detect_info g_trig_detect;
-
 
 static u8 trig_on_change = 0;//比上一次新增加的触发
 static u8 trig_off_change = 0;//比上一次新断开的触发
@@ -161,8 +161,6 @@ int get_parking_status(void)
     return get_trig1_status();
 #endif
 }
-
-
 
 ///////////////////////////////////
 //触发器栈操作
@@ -289,7 +287,6 @@ int trig_on(u8 trig_index)
     {
         return 0;
     }
-    // reset_screen_saver_cnt();
     trig_change_state = TRUE;
     cur_trig = trig_index;
 
@@ -298,18 +295,12 @@ int trig_on(u8 trig_index)
         trig_change_state = FALSE;
         return 0;
     }
-
     last_trig = cur_trig;
-    
-	//rxchip_check_ctrl(0);
-	//reset_check_time();
-    
     if(trig_change_set_perch_state == FALSE)
     {
         AP_SetMenuItem(APPMENUITEM_PRE_CH, AP_GetMenuItem(APPMENUITEM_CH));//保存当前通道
         printf(" > set per ch : %x \r\n",AP_GetMenuItem(APPMENUITEM_PRE_CH));
         trig_change_set_perch_state = TRUE;
-		
     }
 
     if(AP_GetMenuItem(APPMENUITEM_CH)!=trig_ch)
@@ -319,13 +310,12 @@ int trig_on(u8 trig_index)
 	
     if(cur_trig==PARKING_TRIG)
     {
-        //hide_rec_main_ui();
-    	//OSTimeDly(50);
-		//show_park_ui();
+    	HW_LCD_BackLightOff();
+    	AP_PostSystemEvent(SYSTEM_EVENT_CARBACKLINE_ENTER);
+
     }   
-//	rxchip_check_ctrl(1);
     trig_change_state = FALSE;
-   // AP_SaveMenuData (&AppMenuData);//保存参数死机? 
+    hw_backlight_set_auto_off_ticket(0xFFFFFFFF);//关闭屏保
     return 0;
 }
 
@@ -351,6 +341,7 @@ void trig_off(u8 trig_index)
     last_trig = 0;
     if(trig_index == PARKING_TRIG)
     {
+		AP_PostSystemEvent(SYSTEM_EVENT_CARBACKLINE_EXIT);
     //    hide_park_ui();
    //     OSTimeDly(50);
     //    show_rec_main_ui();
@@ -364,7 +355,7 @@ void trig_off(u8 trig_index)
 	{
         lcd_backctrl(1);//backlight on
 	}
-	else if(get_sys_config(SPT_POWER)==POWER_OFF )
+	else if(get_sys_config(SPT_POWER)==POWER_STATE_OFF )
     {
  		lcd_backctrl(0);//backlight off
 	}
@@ -374,7 +365,7 @@ void trig_off(u8 trig_index)
     	trig_change_set_perch_state = FALSE;
 	}
 	trig_change_state = FALSE;
-
+    AP_SetMenuItem(APPMENUITEM_LCD, AP_GetMenuItem(APPMENUITEM_LCD));//关闭屏保
 }
 
 void sys_event_notify(struct sys_event *p_eve)//

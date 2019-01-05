@@ -57,7 +57,7 @@ void *h264_fopen (const char *filename, const char *mode)
 	int type = H264_FILE_TYPE_R;
 	H264_FILE *file;
 	
-	XM_printf ("h264_fopen %s, %s\n", filename, mode);
+	//XM_printf ("h264_fopen %s, %s\n", filename, mode);
 	
 	if(filename == NULL || *filename == 0)
 		return NULL;

@@ -20,20 +20,35 @@
 #include "xm_h264_codec.h"
 #include "gpio.h"
 
+#include "app_imageloader.h"
+
+DWORD gcur_ticket;
+DWORD glast_ticket;
+
+//计算某段程序运行时间
+#define  Start_Calculate do{gcur_ticket = XM_GetTickCount();}while(0)
+#define  End_Calculate do{glast_ticket = XM_GetTickCount();XM_printf(">>>cur ticket:%d, last ticket:%d\r\n", gcur_ticket, glast_ticket);}while(0)
 
 extern int XMSYS_FileManagerFileDelete (unsigned char channel, unsigned char type, unsigned char file_name[8]);
+extern void rxchip_set_delay_data(u8_t val);
 
 #define Thumb_width 304
 #define Thumb_height 208
 #define Thumb_Hor_Interval 28
 #define Thumb_Vert_Interval 28
 
+u8_t update_all_videolist = FALSE;
+u8_t videolist_buffer_vaild_flag[3][6] = { {0,0,0,0,0,0}, {0,0,0,0,0,0}, {0,0,0,0,0,0}};
+XMVIDEOITEM *pVideoItem_buffer[3][6] = { {NULL, NULL, NULL, NULL, NULL, NULL}, {NULL, NULL, NULL, NULL, NULL, NULL}, {NULL, NULL, NULL, NULL, NULL, NULL}};
+__no_init static unsigned char Page_videolist_buffer[3*6*(Thumb_width*Thumb_height*3/2)];		// 显示临时缓冲区
+
 static const int file_error_offset[] = {ROM_T18_LANG_CHN_VIDEO_FILE_ERROR_PNG};
 static const int file_error_length[] = {ROM_T18_LANG_CHN_VIDEO_FILE_ERROR_PNG_SIZE};
 static XM_IMAGE *file_error_image[1];
-static u8_t file_error_flag[6] = {0,0,0,0,0,0};//文件损坏标志
-static u8_t video_page_setting_flag = FALSE;
-static u8_t first_enter = FALSE;
+static u8_t file_error_flag[3][6] = { {0,0,0,0,0,0}, {0,0,0,0,0,0}, {0,0,0,0,0,0}};//文件损坏标志
+static u8_t video_buffer_pos = 1;
+static u8_t video_buffer_pos_pagenum[3] = {0,0,0};
+static u8_t load_update_flag = FALSE;
 
 typedef struct tagVIDEOLISTVIEWLISTDATA {
 	int					nPageNum;					// 当前page
@@ -51,11 +66,10 @@ typedef struct tagVIDEOLISTVIEWLISTDATA {
 } VIDEOLISTVIEWLISTDATA;
 
 
-void set_video_page_switch_flag(u8_t flg)
+void set_update_all_videolist_flag(u8_t flg)
 {
-	video_page_setting_flag = flg;
+	update_all_videolist = flg;
 }
-
 
 // 设置录像列表视窗的聚焦项
 XMBOOL AP_VideoListViewSetFocusItem (UINT uFocusItem)
@@ -68,6 +82,107 @@ XMBOOL AP_VideoListViewSetFocusItem (UINT uFocusItem)
 		return 1;
 	}
 	return 0;
+}
+
+void load_page_video(u8_t pos, int curpage)//加载到指定位置page
+{
+	HANDLE hVideoItem;
+	XMVIDEOITEM *pVideoItem;
+	int ch,item;
+	u8_t i;
+	char text[64];
+	
+	VIDEOLISTVIEWLISTDATA *videoListViewListData = (VIDEOLISTVIEWLISTDATA *)XM_GetWindowPrivateData (XMHWND_HANDLE(VideoListView));
+	if(videoListViewListData == NULL)
+		return;	
+
+	//加载指定page
+	for(i = 0; i < 6; i++)
+	{
+		HANDLE hVideoItem;
+		XMVIDEOITEM *pVideoItem;
+		int ch;
+
+	    item = (curpage-1)*6 + i;
+
+		XM_printf(">>>>>load item:%d\r\n", item);
+		if(item >= videoListViewListData->nItemCount)
+			break;
+		
+		if(videoListViewListData->nItemCount <= 0)
+			break;
+
+		//获取视频项文件名
+		unsigned int replay_ch;
+		if(AP_GetMenuItem(APPMENUITEM_REPLAY_CH)==CH_AHD1)
+		{
+			replay_ch = XM_VIDEO_CHANNEL_0;
+		}
+		else
+		{
+			replay_ch = XM_VIDEO_CHANNEL_1;
+		}
+		hVideoItem = XM_VideoItemGetVideoItemHandleEx(0,replay_ch,XM_FILE_TYPE_VIDEO,XM_VIDEOITEM_CLASS_BITMASK_NORMAL|XM_VIDEOITEM_CLASS_BITMASK_MANUAL,item,1);
+
+		//hVideoItem = AP_VideoItemGetVideoItemHandleEx(videoListViewListData->videotype, item, replay_ch);
+		if(hVideoItem == NULL)
+		{
+			XM_printf(">>>>error2 ..............\r\n");
+			break;
+		}
+		pVideoItem = AP_VideoItemGetVideoItemFromHandle(hVideoItem);
+		if(pVideoItem == NULL)
+		{
+			XM_printf(">>>>error1 ..............\r\n");
+			break;
+		}
+		pVideoItem_buffer[pos][i] = pVideoItem;
+		// 视频预览图片获取
+		if(XM_VideoItemGetVideoFilePath(pVideoItem, replay_ch, text, sizeof(text)))
+		{
+			unsigned int w = Thumb_width;
+			unsigned int h = Thumb_height;
+			unsigned int yuvstride = Thumb_width;
+			unsigned int imagestride;
+			unsigned char *thumb_image;
+			//XM_IMAGE *lpImage = NULL;
+
+			imagestride = w;
+			imagestride *= 4;
+
+			thumb_image = &Page_videolist_buffer[(pos*6*(Thumb_width*Thumb_height*3/2))+i*(Thumb_width*Thumb_height*3/2)];	
+			//lpImage = (XM_IMAGE *)kernel_malloc (imagestride * h + sizeof(XM_IMAGE) - 4);
+			//thumb_image = (unsigned char *)kernel_malloc (yuvstride * h * 3/2);
+			//thumb_image = &(videolist_buffer[pos][i][Thumb_width*Thumb_height*3/2]);
+			
+            if(thumb_image)
+			{
+				unsigned char *image[3];
+				
+				image[0] = thumb_image;
+				image[1] = thumb_image+yuvstride * h;
+				image[2] = 0;
+				if(h264_decode_avi_stream_thumb_frame(text, w, h, yuvstride, image) == 0)//解码把数据放到videolist_buffer中
+				{
+					XM_printf(">>>>>load file ok............\r\n");
+				}
+				else
+				{
+					XM_printf(">>>>>load file error............\r\n");
+					file_error_flag[pos][i] = 1;
+				}	
+
+				videolist_buffer_vaild_flag[pos][i] = TRUE;
+
+				//kernel_free (thumb_image);
+				//kernel_free (lpImage);
+			}
+		}
+		else
+		{
+			XM_printf(">>>>get video error ..............\r\n");
+		}
+	}
 }
 
 void hw_backlight_set_auto_off_ticket (unsigned int ticket);
@@ -95,7 +210,7 @@ static VOID VideoListViewOnEnter(XMMSG *msg)
 		}
 
 		XMSYS_H264CodecRecorderStop();//关闭数据通道
-		
+		update_all_videolist = FALSE;
 		videoListViewListData->videotype = VIDEOITEM_CIRCULAR_VIDEO_MODE;//循环录像模式
 		
 		// 设置窗口的私有数据句柄
@@ -155,8 +270,8 @@ static VOID VideoListViewOnEnter(XMMSG *msg)
 	}
 	// 创建定时器，用于卡拔出检测
 	// 创建0.5秒的定时器
-	hw_backlight_set_auto_off_ticket(0xFFFFFFFF);//关闭屏保，在对方模式再打开
-	XM_SetTimer(XMTIMER_VIDEOLISTVIEW, 500);
+	hw_backlight_set_auto_off_ticket(0xFFFFFFFF);//关闭屏保，在录像模式再打开
+	XM_SetTimer(XMTIMER_VIDEOLISTVIEW, 1500);
 }
 
 VOID VideoListViewOnLeave (XMMSG *msg)
@@ -165,8 +280,9 @@ VOID VideoListViewOnLeave (XMMSG *msg)
 	XM_printf(">>>>>>VideoListViewOnLeave %d......\r\n", msg->wp);
 	XM_KillTimer(XMTIMER_VIDEOLISTVIEW);
 
-	if (msg->wp == 0)
+	if(msg->wp == 0)
 	{
+		XMSYS_H264CodecRecorderStart();
 		// 窗口退出，彻底摧毁。
 		// 获取私有数据句柄
 		VIDEOLISTVIEWLISTDATA *videoListViewListData = (VIDEOLISTVIEWLISTDATA *)XM_GetWindowPrivateData (XMHWND_HANDLE(VideoListView));
@@ -184,8 +300,8 @@ VOID VideoListViewOnLeave (XMMSG *msg)
 			XM_ImageDelete(file_error_image[0]);
 			file_error_image[0] = NULL;
 		}
-
-		XMSYS_H264CodecRecorderStart();
+		rxchip_set_delay_data(2);
+		//OS_Delay(1000);
 		XM_printf(">>>>>>VideoListView Exit......\r\n");
 	}
 	else
@@ -199,7 +315,7 @@ VOID VideoListViewOnLeave (XMMSG *msg)
 VOID VideoListViewOnPaint(XMMSG *msg)
 {
 	XMRECT rc, rect;
-	int i, item;
+	int i, item, page;
 	XMCOORD x, y;
 	//DWORD dwFileAttribute;
 	unsigned int old_alpha;
@@ -227,8 +343,6 @@ VOID VideoListViewOnPaint(XMMSG *msg)
 		XM_PullWindow(0);
 	}
 	#endif
-	
-	XM_FillRect(hWnd, rc.left, rc.top, rc.right, rc.bottom, XM_GetSysColor(XM_COLOR_DESKTOP));
 	old_alpha = XM_GetWindowAlpha (hWnd);
 	XM_SetWindowAlpha(hWnd, 255);
 
@@ -250,8 +364,25 @@ VOID VideoListViewOnPaint(XMMSG *msg)
 	{
 		videoListViewListData->nTotalPage += 1;
 	}		
-	XM_printf(">>>>>>>>VideoListViewOnPaint,videoListViewListData->nItemCount:%d\r\n", videoListViewListData->nItemCount);
-	XM_printf(">>>>>>>>VideoListViewOnPaint,videoListViewListData->nTotalPage:%d\r\n", videoListViewListData->nTotalPage);
+	
+	XM_FillRect(hWnd, rc.left, rc.top, rc.right, rc.bottom, XM_GetSysColor(XM_COLOR_DESKTOP));
+	if(update_all_videolist==FALSE)//仅在page改变时候才全部更新
+	{
+		update_all_videolist = TRUE;
+		for(page=0; page<3; page++)
+		{
+			for(i=0; i<6; i++)
+			{
+				videolist_buffer_vaild_flag[page][i] = FALSE;
+				file_error_flag[page][i] = FALSE;
+				pVideoItem_buffer[page][i] = NULL;
+			}
+			video_buffer_pos_pagenum[page] = 0;
+		}
+		video_buffer_pos = 1;
+		load_update_flag = TRUE;
+		video_buffer_pos_pagenum[video_buffer_pos]= videoListViewListData->nPageNum;
+	}	
 	
 	// --------------------------------------
 	//
@@ -273,7 +404,7 @@ VOID VideoListViewOnPaint(XMMSG *msg)
     sprintf(String,"%d%s%d", videoListViewListData->nPageNum, "/", videoListViewListData->nTotalPage);
     AP_TextGetStringSize(String,sizeof(String),&size);
     AP_TextOutDataTimeString(hWnd, rect.left, rect.top, String, strlen(String));
-
+		
 	// 按5行显示视频列表
 	nVisualCount = rc.bottom - rc.top + 1 - APP_POS_MENU_Y - (240 - APP_POS_BUTTON_Y);
 	nVisualCount /= APP_POS_ITEM5_LINEHEIGHT;
@@ -321,32 +452,14 @@ VOID VideoListViewOnPaint(XMMSG *msg)
 	x = Thumb_Hor_Interval;
 	y = (XMCOORD)(APP_POS_ITEM5_SPLITLINE_Y + 10);
 
-	u8_t startitem, maxitem;
+	//XM_printf(">>>>video_buffer_pos:%d\r\n", video_buffer_pos);
+	//XM_printf(">>>>video_buffer_pos_pagenum[0]:%d\r\n", video_buffer_pos_pagenum[0]);
+	//XM_printf(">>>>video_buffer_pos_pagenum[1]:%d\r\n", video_buffer_pos_pagenum[1]);
+	//XM_printf(">>>>video_buffer_pos_pagenum[2]:%d\r\n", video_buffer_pos_pagenum[2]);
 
-	if(first_enter==FALSE)
-	{
-		first_enter = TRUE;
-		startitem = 0;
-		maxitem = 6;
-	}
-	else
-	{
-		if(videoListViewListData->nCurItem<=2)
-		{
-			startitem = 0;
-			maxitem = 3;
-		}
-		else
-		{
-			startitem = 3;
-			maxitem = 6;
-		}
-	}
-
-	startitem = 0;
-	maxitem = 6;
+	
 	//根据pagenum显示page
-	for(i = startitem; i < maxitem; i++)
+	for(i = 0; i < 6; i++)
 	{
 		HANDLE hVideoItem;
 		XMVIDEOITEM *pVideoItem;
@@ -354,102 +467,167 @@ VOID VideoListViewOnPaint(XMMSG *msg)
 
 	    item = (videoListViewListData->nPageNum-1)*6 + i;
 
-		XM_printf(">>>>>item:%d\r\n", item);
+		//XM_printf(">>>>>item:%d\r\n", item);
 		if(item >= videoListViewListData->nItemCount)
 			break;
 		
 		if(videoListViewListData->nItemCount <= 0)
 			break;
 
-		//获取视频项文件名
-		unsigned int replay_ch;
-		if(AP_GetMenuItem(APPMENUITEM_REPLAY_CH)==CH_AHD1)
+		if(videolist_buffer_vaild_flag[video_buffer_pos][i]==FALSE)
 		{
-			replay_ch = XM_VIDEO_CHANNEL_0;
-		}
-		else
-		{
-			replay_ch = XM_VIDEO_CHANNEL_1;
-		}
-		hVideoItem = XM_VideoItemGetVideoItemHandleEx(0,replay_ch,XM_FILE_TYPE_VIDEO,XM_VIDEOITEM_CLASS_BITMASK_NORMAL|XM_VIDEOITEM_CLASS_BITMASK_MANUAL,item,1);
-
-		//hVideoItem = AP_VideoItemGetVideoItemHandleEx(videoListViewListData->videotype, item, replay_ch);
-		if(hVideoItem == NULL)
-		{
-			XM_printf(">>>>error2 ..............\r\n");
-			break;
-		}
-		
-		pVideoItem = AP_VideoItemGetVideoItemFromHandle(hVideoItem);
-		if(pVideoItem == NULL)
-		{
-			XM_printf(">>>>error1 ..............\r\n");
-			break;
-		}
-		
-		// 视频预览图片获取
-		if(XM_VideoItemGetVideoFilePath(pVideoItem, replay_ch, text, sizeof(text)))
-		{
-			unsigned int w = Thumb_width;
-			unsigned int h = Thumb_height;
-			unsigned int yuvstride = Thumb_width;
-			unsigned int imagestride;
-			unsigned char *thumb_image;
-			XM_IMAGE *lpImage = NULL;
-
-			imagestride = w;
-			imagestride *= 4;
-			
-			lpImage = (XM_IMAGE *)kernel_malloc (imagestride * h + sizeof(XM_IMAGE) - 4);
-			thumb_image = (unsigned char *)kernel_malloc (yuvstride * h * 3/2);
-			
-            if(thumb_image)
+			//获取视频项文件名
+			unsigned int replay_ch;
+			if(AP_GetMenuItem(APPMENUITEM_REPLAY_CH)==CH_AHD1)
 			{
-				unsigned char *image[3];
-				image[0] = thumb_image;
-				image[1] = thumb_image+yuvstride * h;
-				image[2] = 0;
-				if(h264_decode_avi_stream_thumb_frame(text, w, h, yuvstride, image) == 0)
-				{
-					XM_printf(">>>>>file ok............\r\n");
-					XM_ImageConvert_Y_UV420_to_ARGB(thumb_image,(unsigned char *)lpImage->image,w,h);
-					lpImage->id = XM_IMAGE_ID;
-					lpImage->format = XM_OSD_LAYER_FORMAT_ARGB888;
-					lpImage->stride = (unsigned short)imagestride;
-					lpImage->width = w;
-					lpImage->height = h;
-					lpImage->ayuv = NULL;
+				replay_ch = XM_VIDEO_CHANNEL_0;
+			}
+			else
+			{
+				replay_ch = XM_VIDEO_CHANNEL_1;
+			}
+			hVideoItem = XM_VideoItemGetVideoItemHandleEx(0,replay_ch,XM_FILE_TYPE_VIDEO,XM_VIDEOITEM_CLASS_BITMASK_NORMAL|XM_VIDEOITEM_CLASS_BITMASK_MANUAL,item,1);
 
-					XM_ImageDisplay(lpImage, hWnd, x, y);
+			//hVideoItem = AP_VideoItemGetVideoItemHandleEx(videoListViewListData->videotype, item, replay_ch);
+			if(hVideoItem == NULL)
+			{
+				XM_printf(">>>>error2 ..............\r\n");
+				break;
+			}
+			
+			pVideoItem = AP_VideoItemGetVideoItemFromHandle(hVideoItem);
+			if(pVideoItem == NULL)
+			{
+				XM_printf(">>>>error1 ..............\r\n");
+				break;
+			}
+			pVideoItem_buffer[video_buffer_pos][i] = pVideoItem;
+			// 视频预览图片获取
+			if(XM_VideoItemGetVideoFilePath(pVideoItem, replay_ch, text, sizeof(text)))
+			{
+				unsigned int w = Thumb_width;
+				unsigned int h = Thumb_height;
+				unsigned int yuvstride = Thumb_width;
+				unsigned int imagestride;
+				unsigned char *thumb_image;
+				XM_IMAGE *lpImage = NULL;
+
+				imagestride = w;
+				imagestride *= 4;
+
+				lpImage = (XM_IMAGE *)kernel_malloc (imagestride * h + sizeof(XM_IMAGE) - 4);
+				//thumb_image = (unsigned char *)kernel_malloc (yuvstride * h * 3/2);
+
+				thumb_image = &Page_videolist_buffer[(video_buffer_pos*6*(Thumb_width*Thumb_height*3/2))+i*(Thumb_width*Thumb_height*3/2)];
+
+	            if(thumb_image)
+				{
+					unsigned char *image[3];
+					image[0] = thumb_image;
+					image[1] = thumb_image+yuvstride * h;
+					image[2] = 0;
+
+					if(h264_decode_avi_stream_thumb_frame(text, w, h, yuvstride, image) == 0)//解码把数据放到videolist_buffer中
+					{
+						//XM_printf(">>>>>file ok............\r\n");
+						XM_ImageConvert_Y_UV420_to_ARGB(thumb_image,(unsigned char *)lpImage->image,w,h);
+						lpImage->id = XM_IMAGE_ID;
+						lpImage->format = XM_OSD_LAYER_FORMAT_ARGB888;
+						lpImage->stride = (unsigned short)imagestride;
+						lpImage->width = w;
+						lpImage->height = h;
+						lpImage->ayuv = NULL;
+
+						XM_ImageDisplay(lpImage, hWnd, x, y);
+					}
+					else
+					{
+						file_error_flag[video_buffer_pos][i] = 1;
+						XM_ImageDisplay(file_error_image[0], hWnd, x, y);
+						//XM_printf(">>>>>file error............\r\n");
+					}	
+
+					videolist_buffer_vaild_flag[video_buffer_pos][i] = TRUE;
+					//显示时间
+					XM_GetDateTimeFromFileName ((char *)pVideoItem->video_name, &filetime);
+					sprintf (text, "%04d/%02d/%02d %02d:%02d:%02d", filetime.wYear, 
+																	filetime.bMonth,
+																	filetime.bDay,
+																	filetime.bHour,
+																	filetime.bMinute,
+																	filetime.bSecond);
+
+					AP_TextGetStringSize (text, strlen(text), &size);
+					AP_TextOutDataTimeString (hWnd, x, y + Thumb_height +10, text, strlen(text));
+
+					//kernel_free (thumb_image);
+					kernel_free (lpImage);
 				}
-				else
-				{
-					file_error_flag[i] = 1;
-					XM_ImageDisplay(file_error_image[0], hWnd, x, y);
-					XM_printf(">>>>>file error............\r\n");
-				}	
-				//显示时间
-				XM_GetDateTimeFromFileName ((char *)pVideoItem->video_name, &filetime);
-				sprintf (text, "%04d/%02d/%02d %02d:%02d:%02d", filetime.wYear, 
-																filetime.bMonth,
-																filetime.bDay,
-																filetime.bHour,
-																filetime.bMinute,
-																filetime.bSecond);
-
-				AP_TextGetStringSize (text, strlen(text), &size);
-				AP_TextOutDataTimeString (hWnd, x, y + Thumb_height +10, text, strlen(text));
-
-				kernel_free (thumb_image);
-				kernel_free (lpImage);
+			}
+			else
+			{
+				XM_printf(">>>>error ..............\r\n");
 			}
 		}
 		else
-		{
-			XM_printf(">>>>error ..............\r\n");
+		{//已解码好数据,直接转换进行显示
+			//XM_printf(">>>>>1 file ok............\r\n");
+			if(file_error_flag[video_buffer_pos][i]==0)
+			{//文件OK
+				unsigned int w = Thumb_width;
+				unsigned int h = Thumb_height;
+				unsigned int yuvstride = Thumb_width;
+				unsigned int imagestride;
+				unsigned char *thumb_image;
+				XM_IMAGE *lpImage = NULL;
+				unsigned char *ycbcr;
+				
+				imagestride = w;
+				imagestride *= 4;
+				
+				lpImage = (XM_IMAGE *)kernel_malloc (imagestride * h + sizeof(XM_IMAGE) - 4);
+
+				ycbcr = &Page_videolist_buffer[(video_buffer_pos*6*(Thumb_width*Thumb_height*3/2))+i*(Thumb_width*Thumb_height*3/2)];
+
+				//DWORD cur_ticket = XM_GetTickCount();
+				XM_ImageConvert_Y_UV420_to_ARGB(ycbcr,(unsigned char *)lpImage->image,w,h);//消耗100ms
+				//DWORD last_ticket = XM_GetTickCount();
+
+				//XM_printf(">>>>>2 file ok............\r\n");
+				lpImage->id = XM_IMAGE_ID;
+				lpImage->format = XM_OSD_LAYER_FORMAT_ARGB888;
+				lpImage->stride = (unsigned short)imagestride;
+				lpImage->width = w;
+				lpImage->height = h;
+				lpImage->ayuv = NULL;
+				
+				//Start_Calculate;
+				XM_ImageDisplay(lpImage, hWnd, x, y);
+				//End_Calculate;
+
+				kernel_free(lpImage);
+			}
+			else
+			{//文件损坏
+				XM_ImageDisplay(file_error_image[0], hWnd, x, y);
+				XM_printf(">>>>>file error............\r\n");
+			}
+
+			//Start_Calculate;
+			//显示时间
+			XM_GetDateTimeFromFileName ((char *)pVideoItem_buffer[video_buffer_pos][i]->video_name, &filetime);
+			sprintf(text, "%04d/%02d/%02d %02d:%02d:%02d", filetime.wYear, 
+															filetime.bMonth,
+															filetime.bDay,
+															filetime.bHour,
+															filetime.bMinute,
+															filetime.bSecond);
+
+			AP_TextGetStringSize (text, strlen(text), &size);
+			AP_TextOutDataTimeString (hWnd, x, y + Thumb_height +10, text, strlen(text));
+			//End_Calculate;
 		}
 
-		
 		x = (XMCOORD)(x + Thumb_width + Thumb_Hor_Interval);		
 		if(i==2)
 		{
@@ -464,6 +642,12 @@ VOID VideoListViewOnPaint(XMMSG *msg)
 VOID VideoListViewOnKeyDown (XMMSG *msg)
 {
 	VIDEOLISTVIEWLISTDATA *videoListViewListData = (VIDEOLISTVIEWLISTDATA *)XM_GetWindowPrivateData (XMHWND_HANDLE(VideoListView));
+
+    if( AP_GetMenuItem(APPMENUITEM_POWER_STATE) == POWER_STATE_OFF)
+    {
+        return;
+    }
+
 	if(videoListViewListData == NULL)
 		return;
 	
@@ -478,10 +662,11 @@ VOID VideoListViewOnKeyDown (XMMSG *msg)
 			XM_printf(">>>>>>>VK_AP_MENU\r\n");
             XM_PushWindowEx(XMHWND_HANDLE(PlayBackMenu),(DWORD)videoListViewListData);//回放菜单,压栈方式数据还未释放
 			break;
+			
         case REMOTE_KEY_DOWN:
 		case VK_AP_SWITCH://OK键
 			XM_printf(">>>>>>>VK_AP_MODE\r\n");
-			if(!file_error_flag[videoListViewListData->nCurItem])
+			if(!file_error_flag[video_buffer_pos][videoListViewListData->nCurItem])
 			{
 				if(videoListViewListData->nItemCount > 0)
 				{	
@@ -490,6 +675,7 @@ VOID VideoListViewOnKeyDown (XMMSG *msg)
 				}
 			}
 			break;
+			
 		case REMOTE_KEY_LEFT:
 		case VK_AP_DOWN://-键		
 			XM_printf(">>>>>>>VK_AP_DOWN\r\n");
@@ -511,11 +697,23 @@ VOID VideoListViewOnKeyDown (XMMSG *msg)
 					{
 						videoListViewListData->nCurItem = videoListViewListData->nItemCount%6-1;
 					}
+					//update_all_videolist = FALSE;
+					load_update_flag = TRUE;
 				}
 				else
 				{
 					videoListViewListData->nPageNum--;
 					videoListViewListData->nCurItem = 5;
+					//update_all_videolist = FALSE;
+					if(video_buffer_pos==0)
+					{
+						video_buffer_pos = 2;
+					}
+					else
+					{
+						video_buffer_pos--;
+					}
+					load_update_flag = TRUE;
 				}
 			}
 			else
@@ -526,6 +724,7 @@ VOID VideoListViewOnKeyDown (XMMSG *msg)
 			XM_InvalidateWindow ();
 			XM_UpdateWindow ();
 			break;
+			
 		case REMOTE_KEY_RIGHT:
 		case VK_AP_UP:////+键	选中下一个框
 			XM_printf(">>>>>>>VK_AP_UP\r\n");
@@ -540,13 +739,23 @@ VOID VideoListViewOnKeyDown (XMMSG *msg)
 				{
 					videoListViewListData->nCurItem = 0;
 					videoListViewListData->nPageNum++;
+					//update_all_videolist = FALSE;
+					video_buffer_pos++;
+					if(video_buffer_pos>2)
+					{
+						video_buffer_pos= 0;
+					}
+					load_update_flag = TRUE;
 				}
 			}
 			else
 			{
 				videoListViewListData->nPageNum = 1;
 				videoListViewListData->nCurItem = 0;
+				load_update_flag = TRUE;
+				//update_all_videolist = FALSE;
 			}
+			
 			// 刷新
 			XM_InvalidateWindow ();
 			XM_UpdateWindow ();
@@ -572,12 +781,61 @@ VOID VideoListViewOnKeyUp (XMMSG *msg)
 	XM_printf(">>>>>>>>VideoListViewOnKeyUp, msg->wp:%x, msg->lp:%x\r\n", msg->wp, msg->lp);
 }
 
+
 VOID VideoListViewOnTimer (XMMSG *msg)
 {
-	//XM_printf(">>>>>111\r\n");
-	if(get_parking_trig_status() != 0 && AP_GetMenuItem(APPMENUITEM_PARKING_LINE))
+	u8_t pre_pagenum; 
+	u8_t next_pagenum;
+	u8_t next_pos;
+	u8_t pre_pos;
+
+	VIDEOLISTVIEWLISTDATA *videoListViewListData = (VIDEOLISTVIEWLISTDATA *)XM_GetWindowPrivateData (XMHWND_HANDLE(VideoListView));
+	if(videoListViewListData == NULL)
+		return;
+
+	if(load_update_flag==TRUE)
 	{
-	    XM_PullWindow(0);//返回桌面显示倒车界面
+		load_update_flag = FALSE;
+		XM_printf(">>>>video_buffer_pos:%d\r\n", video_buffer_pos);
+		XM_printf(">>>>cur page num:%d\r\n", videoListViewListData->nPageNum);
+		
+		next_pos = video_buffer_pos + 1;
+		pre_pos = video_buffer_pos - 1;
+		if(next_pos>2) next_pos = 0;
+		if(pre_pos>3) pre_pos = 2;
+		
+		XM_printf(">>>>next pos:%d\r\n", next_pos);
+		XM_printf(">>>>video_buffer_pos_pagenum[next_pos]:%d\r\n", video_buffer_pos_pagenum[next_pos]);
+
+		next_pagenum = videoListViewListData->nPageNum+1;
+		if(next_pagenum>videoListViewListData->nTotalPage)
+		{
+			next_pagenum = 1;
+		}
+
+		XM_printf(">>>>next page num:%d\r\n", next_pagenum);
+		if(video_buffer_pos_pagenum[next_pos]!=next_pagenum)
+		{
+			load_page_video(next_pos, next_pagenum);
+			video_buffer_pos_pagenum[next_pos] = next_pagenum;	
+		}	
+
+		XM_printf(">>>>pre pos:%d\r\n", pre_pos);
+		XM_printf(">>>>video_buffer_pos_pagenum[pre_pos]:%d\r\n", video_buffer_pos_pagenum[pre_pos]);
+		if(videoListViewListData->nPageNum==1)
+		{
+			pre_pagenum = videoListViewListData->nTotalPage;
+		}
+		else
+		{
+			pre_pagenum = videoListViewListData->nPageNum-1;
+		}
+		XM_printf(">>>>pre page num:%d\r\n", pre_pagenum);
+		if(video_buffer_pos_pagenum[pre_pos]!=pre_pagenum)
+		{
+			load_page_video(pre_pos, pre_pagenum);
+			video_buffer_pos_pagenum[pre_pos] = pre_pagenum;	
+		}			
 	}
 }
 

@@ -19,7 +19,7 @@
 #include "xm_message_socket.h"
 #include "xm_key.h"
 #include "xm_user.h"
-
+#include "rxchip.h"
 
 
 #define	MAX_SYSTEM_MESSAGE_COUNT		16
@@ -39,6 +39,71 @@ static queue_s				message_live;	// 消息单元链表
 static OS_CSEMA			message_sema;	// 已缓冲的系统消息计数
 
 static OS_RSEMA			message_access_sema;	
+
+struct _rxchip_video g_rxchp_video_param;
+
+void load_sd_rx_parameter(void)
+{
+	unsigned char rx_buffer[16];
+	FS_FILE *fp;
+
+	fp = FS_FOpen("\\video.bin", "rb");
+	unsigned int size = FS_GetFileSize (fp);
+	XM_printf(">>>>file size:%d\r\n", size);
+
+	int ret = FS_Read(fp, (char *)rx_buffer, size);
+
+	unsigned char i;
+	for(i=0; i<16; i++)
+	{
+		XM_printf(">>>>rx_buffer[%d]:%x\r\n", i, rx_buffer[i]);
+	}
+	g_rxchp_video_param.brightness = rx_buffer[0];
+	g_rxchp_video_param.contrast = rx_buffer[1];
+	g_rxchp_video_param.saturation = rx_buffer[2];
+	g_rxchp_video_param.hue = rx_buffer[3];
+	g_rxchp_video_param.sharpness = rx_buffer[4];
+	g_rxchp_video_param.ob = rx_buffer[5];
+	g_rxchp_video_param.bw = rx_buffer[6];
+	XM_printf(">>>>g_rxchp_video_param.brightness:%x\r\n", g_rxchp_video_param.brightness);
+	XM_printf(">>>>g_rxchp_video_param.contrast:%x\r\n", g_rxchp_video_param.contrast);
+	XM_printf(">>>>g_rxchp_video_param.saturation:%x\r\n", g_rxchp_video_param.saturation);
+	XM_printf(">>>>g_rxchp_video_param.hue:%x\r\n", g_rxchp_video_param.hue);
+	XM_printf(">>>>g_rxchp_video_param.sharpness:%x\r\n", g_rxchp_video_param.sharpness);
+	XM_printf(">>>>g_rxchp_video_param.ob:%x\r\n", g_rxchp_video_param.ob);
+	XM_printf(">>>>g_rxchp_video_param.bw:%x\r\n", g_rxchp_video_param.bw);
+
+
+    RXCHIPCMD cmd;
+    cmd.cmd = CMD_BRIGHTNESS;
+    cmd.dat = g_rxchp_video_param.brightness;
+    rxchip_setting(cmd);	
+
+    cmd.cmd = CMD_CONTRAST;
+    cmd.dat = g_rxchp_video_param.contrast;
+    rxchip_setting(cmd);	
+
+    cmd.cmd = CMD_SATURATION;
+    cmd.dat = g_rxchp_video_param.saturation;
+    rxchip_setting(cmd);	
+
+    cmd.cmd = CMD_HUE;
+    cmd.dat = g_rxchp_video_param.hue;
+    rxchip_setting(cmd);
+
+    cmd.cmd = CMD_SHARPNESS;
+    cmd.dat = g_rxchp_video_param.sharpness;
+    rxchip_setting(cmd);	
+
+    cmd.cmd = CMD_OB;
+    cmd.dat = g_rxchp_video_param.ob;
+    rxchip_setting(cmd);
+
+    cmd.cmd = CMD_BW;
+    cmd.dat = g_rxchp_video_param.bw;
+    rxchip_setting(cmd);	
+}
+
 
 int xm_open_volume_service (char *volume_name, int b_post_insert_message)
 {
@@ -164,6 +229,11 @@ static int sdmmc_message_handler (fCard_Event *card_event)
 						ret = xm_open_volume_service (temp, 1);
 						// 启动后台检查程序, 检查系统升级包是否存在
 						XMSYS_system_update_check ();
+
+						//仅仅对调试
+						#ifdef JLINK_DISABLE
+						load_sd_rx_parameter();
+						#endif
 						XM_printf(">>>>>>>>>>>sd insert, system update check file..........\r\n");
 						break;
 					}

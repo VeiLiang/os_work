@@ -303,13 +303,13 @@ XMBOOL	XM_SetFmlDeviceCap  (BYTE bDevCapIndex, DWORD dwValue)
 				bBackLightOn = (BYTE)dwValue;
                 if(bBackLightOn == 0) { //关闭背光
                     HW_LCD_BackLightOff();
-                    AP_SetMenuItem(APPMENUITEM_POWER_STATE,POWER_OFF);
+                    AP_SetMenuItem(APPMENUITEM_POWER_STATE,POWER_STATE_OFF);
                 }else {//开启背光
                     //非关机状态下打开背光
                     if(Close_Audio_Sound)
                     {
                         HW_LCD_BackLightOn();
-                        AP_SetMenuItem(APPMENUITEM_POWER_STATE,POWER_ON);
+                        AP_SetMenuItem(APPMENUITEM_POWER_STATE,POWER_STATE_ON);
                     }
                 }
                 #if 0

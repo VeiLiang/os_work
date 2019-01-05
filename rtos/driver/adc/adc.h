@@ -47,31 +47,6 @@
 
 #define ADCKEY_NULL				0xfffff
 
-//Battery
-#define BATTERY_LVL_0                 0
-#define BATTERY_LVL_1                 1
-#define BATTERY_LVL_2                 2
-#define BATTERY_LVL_3                 3
-#define BATTERY_LVL_4                 4
-#define BATTERY_LVL_5                 5
-#define BATTERY_LVL_6                 6
-#define BATTERY_LVL_7                 7
-#define BATTERY_LVL_8                 8
-#define BATTERY_LVL_9                 9
-#define LOW_POWER_LVL               BATTERY_LVL_8
-
-#define BATTERY_ADC_0					 945	  // 9v
-#define BATTERY_ADC_1					 1008	  // 9.5
-#define BATTERY_ADC_2					 1066	  // 10
-#define BATTERY_ADC_3					 1118	  //10.5
-#define BATTERY_ADC_12V                  1242
-#define BATTERY_ADC_15V                  1589
-#define BATTERY_ADC_18V                  1942
-#define BATTERY_ADC_20V                  2168
-#define BATTERY_ADC_23V                  2512
-#define BATTERY_DIFF                     0x01
-
-
 typedef struct
 {
 	UINT16 adcX;

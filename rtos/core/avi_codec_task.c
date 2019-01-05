@@ -2754,9 +2754,11 @@ void XMSYS_H264CodecTask (void)
 					
 					// 启动h264 codec过程
 					#if _XM_PROJ_ == _XM_PROJ_2_SENSOR_1080P_CVBS 
+					XM_printf(">>>>_XM_PROJ_,_XM_PROJ_2_SENSOR_1080P_CVBS\r\n");
 					//codec_ret = h264codec_RecorderStart_two_channel();
 					codec_ret = h264codec_RecorderStart_two_channel();
 					#else
+					XM_printf(">>>>_XM_PROJ_,_XM_PROJ_1_SENSOR_1080P\r\n");
 					codec_ret = h264codec_RecorderStart();
 					#endif
 					if(codec_ret < 0)
@@ -3010,7 +3012,7 @@ int XMSYS_H264CodecRecorderStart (void)
 	h264codec_command_param.command = XMSYS_H264_CODEC_COMMAND_RECORDER_START;
 	OS_SignalEvent(XMSYS_H264_CODEC_EVENT_COMMAND, &TCB_H264CodecTask); /* 通知事件 */
 	OS_Unuse(&h264codec_sema);
-	
+		
 	// 等待H264 Codec线程应答
 	if(OS_GetMailTimed (&h264codec_mailbox, &response_code, CODEC_TIMEOUT) == 0)
 	{
@@ -3116,7 +3118,7 @@ int XMSYS_H264CodecRecorderStop  (void)
 		printf(" XMSYS_VideoClose \n");
 		// 停止sensor
 		XM_printf ("%d,XMSYS_SensorCaptureStop\n",XM_GetTickCount());
-		XMSYS_SensorCaptureStop ();
+		XMSYS_SensorCaptureStop();
 
 	}
 	else

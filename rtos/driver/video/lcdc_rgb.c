@@ -214,7 +214,7 @@ static void LCD_Init (void)
 						( hsync_ivs     <<17) |
 						( vsync_ivs     <<18) |
 						( lcd_ac_ivs     <<19) |
-						( 1  <<21 ) |
+						( 0  <<21 ) |
 						( 1 <<23  ) |
 						( test_on_flag     <<31)   ;
 
@@ -260,21 +260,30 @@ static void LCD_Init (void)
 		(  VSW1_h_fall    <<12 ) ;
 
 	lcd_param12  = 66 | (129<<9) | (25<<18);
-
 	lcd_param13  = 38 |  (74<<9) | (112<<18);
-
 	lcd_param14  = 112 | (94<<9) | (18<<18);
 
-	lcd_param15  = 256 | (0<<9) | (394<<18);
+	//R =（ (Y –ysub_sel*16）* YUV2RGB_coeff00  + （Cr-128） * YUV2RGB_coeff02）/256 
+	//YUV2RGB_coeff00,bit8-bit0
+	//YUV2RGB_coeff02,bit26-bi18
+	//Reserved,0 bit17-bit9
+	lcd_param15  = (0x100<<0) | (0<<9) | (394<<18);
 
-	lcd_param16  = 256 |  (47<<9) | (118<<18);
+	//G =（ (Y –ysub_sel*16）* YUV2RGB_coeff00  -（Cb-128）* YUV2RGB_coeff11 -  （Cr-128） * YUV2RGB_coeff12）/256 
+	//YUV2RGB_coeff11,bit17:bit9
+	//YUV2RGB_coeff12,bit26:bit18
+	//Reserved,0x80 bit8-bit1
+	//ysub_sel,1:-16,0:0
+	lcd_param16  = (0<<0) | (0x80<<1) |  (47<<9) | (118<<18);
 
-	lcd_param17  = 256 | (465<<9) | (0<<19);
+	// B =（ (Y –ysub_sel*16）* YUV2RGB_coeff00  +（Cb-128）* YUV2RGB_coeff21）/256 
+	//YUV2RGB_coeff21,bit18:bit9
+	//Reserved,0 bit27-bit19
+	//Reserved,0x100, bit8-bit0
+	lcd_param17  = (0x100<<0) | (465<<9) | (0<<19);
 
 	//  lcd_param15  = 298 | (0<<9) | (409<<18);
-
 	//  lcd_param16  = 299 |  (100<<9) | (208<<18);
-
 	//  lcd_param17  = 298 | (517<<9) | (0<<19);
 
 	lcd_param18  =
@@ -330,12 +339,14 @@ static void LCD_Init (void)
 
 	LCD_PARAM0_reg     = lcd_param0  ;
 	//offset :0x70190000 +0x214
-	LCD_dithing_reg    = (1<<7) | (1<<15) | 5<<24;//
+	LCD_dithing_reg    = (1<<7) | (1<<15) | (0<<24);//
 	 VP_RGB2YCBCR_COEF0_reg = 0x10650242;    // 复位缺省值
      VP_RGB2YCBCR_COEF1_reg = 0x01c09426;    // 复位缺省值
      VP_RGB2YCBCR_COEF2_reg = 0x0048bc70;    // 复位缺省值
-     VP_CONTROL_reg =  0xF | (64 << 8);  // VDE
+     VP_CONTROL_reg =  0xF | (0<<4) |(64 << 8);  // VDE
 
+XM_printf(">>>>VP_CONTROL_reg:%x\r\n", VP_CONTROL_reg);
+//HUE  BRIGHTNESS  CONTRAST  SATURATION register
 VP_ADJUSTMent_reg=0x606090;
 LCD_GAMMA_REG_0=3;
 LCD_GAMMA_REG_1=0x0E0A0603;

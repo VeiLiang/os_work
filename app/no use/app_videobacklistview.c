@@ -179,7 +179,6 @@ XMBOOL AP_VideoBackListViewSetFocusItem (UINT uFocusItem)
 	return 0;
 }
 
-extern unsigned int buzz_time;
 static VOID VideoBackListViewOnEnter (XMMSG *msg)
 {
 	VIDEOBACKLISTVIEWLISTDATA *videoBackListViewListData;

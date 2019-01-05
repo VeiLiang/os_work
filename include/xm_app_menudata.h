@@ -367,9 +367,11 @@ enum{
 
 //电源状态
 enum {
-    POWER_OFF,
-    POWER_ON,
-
+    POWER_STATE_OFF,
+    POWER_STATE_ON,
+	POWER_MODE_SAVE,
+	POWER_MODE_ON,
+	POWER_MODE_OFF,
 };
 
 #define CH1_MIRROR      0x01
@@ -448,7 +450,7 @@ enum {
 	APPMENUITEM_CH3_DELAY,//通道3延时,单位s
 	APPMENUITEM_CH4_DELAY,//通道4延时,单位s
 	APPMENUITEM_POWER_STATE,//电源状态
-
+	APPMENUITEM_POWER_MODE,//电源模式
 	
 	APPMENUITEM_COUNT,  //最大值,请勿在后面添加,要添加到前面   
 
@@ -570,6 +572,7 @@ typedef struct _tagAPPMENUDATA {
     u8_t ch3_delay;//通道3延时
     u8_t ch4_delay;//通道4延时
 	u8_t power_state;//电源状态
+	u8_t power_mode;//电源模式,SAVE,ON,OFF
 	XMSYSTEMTIME buildtime;
 	u8_t update_date_falg;//时间更新标志
 	

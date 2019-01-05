@@ -90,7 +90,7 @@ VOID VersionViewOnPaint (XMMSG *msg)
 
 	rect = rc;
 	rect.left = rect.left + 140; rect.top = rect.top + 100;	
-    sprintf(String,"%s", "VER:181219");
+    sprintf(String,"%s", "VER:190103");
     AP_TextGetStringSize(String,sizeof(String),&size);
     AP_TextOutDataTimeString(hwnd, rect.left, rect.top, String, strlen(String));
 

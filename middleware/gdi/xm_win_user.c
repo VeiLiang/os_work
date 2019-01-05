@@ -516,18 +516,18 @@ static VOID PollHardwareEvent (XMBOOL bBlockCaller)
 		{
 			if(((key == VK_POWER)||(key == REMOTE_KEY_POWER))&& !get_parking_trig_status())
 			{
-               if(AP_GetMenuItem(APPMENUITEM_POWER_STATE)==POWER_ON) 
+               if(AP_GetMenuItem(APPMENUITEM_POWER_STATE)==POWER_STATE_ON) 
                {
                    HW_LCD_BackLightOff();
                   // XM_printf("ZY......%s %d \n",  __FUNCTION__,__LINE__);
-                   AP_SetMenuItem(APPMENUITEM_POWER_STATE,POWER_OFF);
+                   AP_SetMenuItem(APPMENUITEM_POWER_STATE,POWER_STATE_OFF);
 
                }
-               else if(AP_GetMenuItem(APPMENUITEM_POWER_STATE)==POWER_OFF) 
+               else if(AP_GetMenuItem(APPMENUITEM_POWER_STATE)==POWER_STATE_OFF) 
 			   {
                   //XM_printf("ZY......%s %d \n",  __FUNCTION__,__LINE__);
 
-                   AP_SetMenuItem(APPMENUITEM_POWER_STATE,POWER_ON);
+                   AP_SetMenuItem(APPMENUITEM_POWER_STATE,POWER_STATE_ON);
                    HW_LCD_BackLightOn();
 
 			   }

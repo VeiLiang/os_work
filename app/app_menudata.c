@@ -309,7 +309,7 @@ int AP_RestoreMenuData (void)
     lpMenuData->AutoDimOnOff =0;
     lpMenuData->Middle_RED_LIne =0;
     lpMenuData->Audio_PWM =0;
-    lpMenuData->VCOM_PWM = 50;
+    lpMenuData->VCOM_PWM = 12;
     
     lpMenuData->Color_Brightness =50;
     lpMenuData->Color_Contrast =50;
@@ -328,10 +328,11 @@ int AP_RestoreMenuData (void)
     lpMenuData->ch2_delay=0;
     lpMenuData->ch3_delay=0;
     lpMenuData->ch4_delay=0;
-	lpMenuData->power_state=POWER_ON;
+	lpMenuData->power_state=POWER_STATE_ON;
 	lpMenuData->update_date_falg = 0;
 	lpMenuData->parking_line = 1;//倒车线默认打开
-
+	lpMenuData->power_mode = POWER_MODE_ON;
+	
 	ret = AP_SaveMenuData (lpMenuData);
 	OS_LeaveRegion();
 
@@ -401,7 +402,8 @@ unsigned int AP_GetMenuItem (int menu_item)
         case APPMENUITEM_CH3_DELAY:                     return AppMenuData.ch3_delay;
         case APPMENUITEM_CH4_DELAY:                     return AppMenuData.ch4_delay;
         case APPMENUITEM_POWER_STATE:                   return AppMenuData.power_state;
-
+		case APPMENUITEM_POWER_MODE:					return AppMenuData.power_mode;
+		
 		default:										return 0;
 	}
 }
@@ -728,34 +730,36 @@ void AP_SetMenuItem (int menu_item, unsigned int item_value)
 		    AppMenuData.parking_line = (u8_t)item_value;
 		    break;
 		case APPMENUITEM_PARKING_DELAY:
-		    AppMenuData.parking_delay= (u8_t)item_value;
+		    AppMenuData.parking_delay = (u8_t)item_value;
 		    break;
 		case APPMENUITEM_CH:
-			AppMenuData.curch= (u8_t)item_value;
+			AppMenuData.curch = (u8_t)item_value;
 			break;
 
 		case APPMENUITEM_REPLAY_CH:
 			AppMenuData.replay_ch = (u8_t)item_value;
 			break;
         case APPMENUITEM_PRE_CH:
-            AppMenuData.prech= (u8_t)item_value;
+            AppMenuData.prech = (u8_t)item_value;
 			break;
         case APPMENUITEM_CH1_DELAY:
-            AppMenuData.ch1_delay= (u8_t)item_value;
+            AppMenuData.ch1_delay = (u8_t)item_value;
 			break;		
         case APPMENUITEM_CH2_DELAY:
-            AppMenuData.ch2_delay= (u8_t)item_value;
+            AppMenuData.ch2_delay = (u8_t)item_value;
 			break;	
         case APPMENUITEM_CH3_DELAY:
-            AppMenuData.ch3_delay= (u8_t)item_value;
+            AppMenuData.ch3_delay = (u8_t)item_value;
 			break;	
         case APPMENUITEM_CH4_DELAY:
-            AppMenuData.ch4_delay= (u8_t)item_value;
+            AppMenuData.ch4_delay = (u8_t)item_value;
 			break;	
 		case APPMENUITEM_POWER_STATE: 
-		     AppMenuData.power_state= (u8_t)item_value;
+		     AppMenuData.power_state = (u8_t)item_value;
 			 break;
-			 
+		case APPMENUITEM_POWER_MODE: 
+		     AppMenuData.power_mode = (u8_t)item_value;
+			 break;			 
 		default:
 			return;
 	}
@@ -934,30 +938,14 @@ void AP_SetLCD_Rotate(u8_t Lcd_Rotate)
     HW_LCD_ROTATE(Lcd_Rotate);
 }
 
-extern u8_t pipmode;
 unsigned int AP_GetColor_Brightness(void)
 {
     return AppMenuData.Color_Brightness;
-//    if(pipmode == 1)
-//	return PR2000_GetBright_Data();
-//    else  if(pipmode == 2)
-//	return PR2000_2_GetBright_Data();
-//    else
-//	return PR2000_GetBright_Data();
-		
 }
+
 void AP_SetColor_Brightness(u8_t Brightness)
 {
     AppMenuData.Color_Brightness = Brightness;
-//    if(pipmode == 1)
-//	PR2000_SetBright_Data(Brightness);
-//    else  if(pipmode == 2)
-//	PR2000_2_SetBright_Data(Brightness);
-//    else  if(pipmode == 0)
-//	PR2000_2_SetBright_Data(Brightness);
-//	PR2000_SetBright_Data(Brightness);
-		
-
 }
 
 VOID AP_SetCamera_Mot(u8_t mot)
@@ -968,45 +956,21 @@ VOID AP_SetCamera_Mot(u8_t mot)
 unsigned int AP_GetColor_Contrast(void)
 {
     return AppMenuData.Color_Contrast;
-//        if(pipmode == 1)
-//	return PR2000_GetContract_Data();
-//    else  if(pipmode == 2)
-//	return PR2000_2_GetContract_Data();
-//    else
-//	return PR2000_GetContract_Data();
 }
+
 VOID AP_SetColor_Contrast(u8_t Contrast)
 {
     AppMenuData.Color_Contrast = Contrast;
-//        if(pipmode == 1)
-//	PR2000_SetContract_Data(Contrast);
-//    else  if(pipmode == 2)
-//	PR2000_2_SetContract_Data(Contrast);
-//    else  if(pipmode == 0)
-//	PR2000_SetContract_Data(Contrast);
-//	PR2000_2_SetContract_Data(Contrast);
 }
 
 unsigned int AP_GetColor_Saturation(void)
 {
     return AppMenuData.Color_Saturation;
-//     if(pipmode == 1)
-//	return PR2000_GetStaturation_Data();
-//    else  if(pipmode == 2)
-//	return PR2000_2_GetStaturation_Data();
-//    else
-//	return PR2000_GetStaturation_Data();
 }
+
 VOID AP_SetColor_Saturation(u8_t Saturation)
 {
     AppMenuData.Color_Saturation = Saturation;
-//            if(pipmode == 1)
-//	PR2000_SetStaturation_Data(Struation);
-//    else  if(pipmode == 2)
-//	PR2000_2_SetStaturation_Data(Struation);
-//    else  if(pipmode == 0)
-//	PR2000_SetStaturation_Data(Struation);
-//	PR2000_2_SetStaturation_Data(Struation);
 }
 
 unsigned int AP_GetColor_Tone(void)
@@ -1018,17 +982,10 @@ void AP_SetColor_Tone(u8_t Tone)
 {
     AppMenuData.Color_Tone = Tone;
 }
+
 VOID Select_Background_Color(VOID)
 {
-#if 0
-     if(pipmode == 1)
-	PR2000_Background_Color();
-    else  if(pipmode == 2)
-	PR2000_2_Background_Color();
-    else  if(pipmode == 0)
-	PR2000_Background_Color();
-	PR2000_2_Background_Color();
-#endif
+
 }
 
 unsigned int AP_GetLang()

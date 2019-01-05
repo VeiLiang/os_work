@@ -222,7 +222,6 @@ static void updateFactoryMenuItem(HANDLE hWnd,FACTORYVIEWDATA *factoryViewData,X
     drawFactoryMenuItem(hWnd,factoryViewData,menu_rc,factoryViewData->nCurItem);
 }
 
-extern UINT32 ADCValue_show;
 VOID FactoryViewOnPaint (XMMSG *msg)
 {
 	XMRECT rc,rect,rcArrow,menu_rc;

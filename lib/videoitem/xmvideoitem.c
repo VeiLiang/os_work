@@ -3593,12 +3593,14 @@ XMBOOL XM_VideoItemDeleteVideoItemHandle (HANDLE hVideoItemHandle, VIDEOFILETORE
 			video_item_recycle_space -= video_item->video_size;
 			//XM_printf ("400 recycle - file size(%lld),  recycle_space(%lld)\n",  video_item->video_size, video_item_recycle_space);
 		}
-
+	
 		video_item_count --;
 		XM_ASSERT (video_item_count >= 0);
 
 		videoitem_free (valuep);
 		rbtErase (h, (RbtIterator)i);
+
+
 		ret = 1;
 	} while (0);
 
@@ -4387,8 +4389,7 @@ void __XM_VideoItemMonitorAndRecycleGarbage (XMBOOL bReportEstimatedRecordingTim
 			
 			// 20180825 zhuoyonghong
 			// 可回收总空间低时，自动触发卷回收操作
-			int del_count = videoitem_recycle (volumn_index, XM_FILE_TYPE_VIDEO, XM_VIDEOITEM_CLASS_BITMASK_NORMAL); 
-			printf("-------------------> del_count ---------------->: %d\n",del_count);
+			videoitem_recycle (volumn_index, XM_FILE_TYPE_VIDEO, XM_VIDEOITEM_CLASS_BITMASK_NORMAL); 
 		}
 	}
 	

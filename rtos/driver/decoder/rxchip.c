@@ -100,8 +100,6 @@ u8 utc_normal_cmd[4] = {0x23, 0x45, 0x67, 0x00};//正常
 #define _1080P_30FPS				0x07
 #define FORMAT_OFFSET				0X00	
 
-extern u8_t pipmode;
-
 #define RXCHIP_CHECK_EVENT    (1<<0)
 
 static struct rxchip_detect_info rxchip_detect;
@@ -123,7 +121,6 @@ static unsigned int  Camera_Video_Width=1280;
 static unsigned int  Camera_Video_Height=720;
 #endif
 static unsigned char Camera_Pre_Video_Format=_720P_25FPS;
-u8_t ACC_Select = 1;
 u8_t ACC_Det_Channel = 0;
 BOOL Camera_Data_signed = FALSE;
 
@@ -132,7 +129,7 @@ int Sensor1_In_Flag = 0;//根据标志判断录像录几通道，默认录两通道
 int Sensor2_In_Flag = 0;
 uchar sensor2reverse = 0;//根触发相关后续优化
 uchar sensor1reverse = 0;
-u8_t Delay_NVP6214_Data = 0;
+u8_t Delay_rxchip_Data = 0;
 BOOL rxchip_ready_flag = FALSE;//rx初始化完成标志
 #endif
 
@@ -287,7 +284,9 @@ const RXCHIPstaticPara rxchip_rn6752m_720p_pal_staticPara[]=
 	    
 	{0x40, 0x04},
 	{0x46, 0x23},
+	
 	{0x49, 0x84},
+	{0x6d, 0x00},
 	
 	{0x8E, 0x00}, // single channel output for VP
 	{0x8F, 0x80}, // 720p mode for VP
@@ -691,7 +690,51 @@ static void rxchip_set_hue(u8 val)
 	}
 }
 
+/**
+ *
+ * rxchip 设置清晰度
+ *
+ */
+static void rxchip_set_sharpness(u8 val)
+{	
+	//XM_lock();
+	gpio_i2c_write(RXCHIP_SEN0_SLAVE_ADDR, 0x05, val);
+	//XM_unlock();
+	//XM_lock();
+	gpio_i2c_write(RXCHIP_SEN1_SLAVE_ADDR, 0x05, val);
+	//XM_unlock();
+}
 
+
+/**
+ *
+ * rxchip 设置OB
+ *
+ */
+static void rxchip_set_ob(u8 val)
+{	
+	//XM_lock();
+	gpio_i2c_write(RXCHIP_SEN0_SLAVE_ADDR, 0x34, val);
+	//XM_unlock();
+	//XM_lock();
+	gpio_i2c_write(RXCHIP_SEN1_SLAVE_ADDR, 0x34, val);
+	//XM_unlock();
+}
+
+/**
+ *
+ * rxchip 设置BW
+ *
+ */
+static void rxchip_set_bw(u8 val)
+{	
+	//XM_lock();
+	gpio_i2c_write(RXCHIP_SEN0_SLAVE_ADDR, 0x57, val);
+	//XM_unlock();
+	//XM_lock();
+	gpio_i2c_write(RXCHIP_SEN1_SLAVE_ADDR, 0x57, val);
+	//XM_unlock();
+}
 /**
  *
  * rxchip 设置PAL制式
@@ -1203,6 +1246,7 @@ static void rxchip_task (void)
 	
 	rxchip_detect.en_rxchip_check = 1;
 	cur_ch = CAM1_CAM2;
+	Delay_rxchip_Data = 0;
 	
 	while(1)
 	{
@@ -1229,7 +1273,19 @@ static void rxchip_task (void)
 				case CMD_HUE:
 					rxchip_set_hue(rxchip_cmd.dat);
 					break;
+					
+				case CMD_SHARPNESS:
+					rxchip_set_sharpness(rxchip_cmd.dat);
+					break;
 
+				case CMD_OB:
+					rxchip_set_ob(rxchip_cmd.dat);
+					break;
+
+				case CMD_BW:
+					rxchip_set_bw(rxchip_cmd.dat);
+					break;
+					
 				default:
 					XM_printf(">>>>>undefin cmd..................\r\n");
 					break;
@@ -1486,6 +1542,7 @@ static void rxchip_task (void)
 						rxchip_detect.complete_check_flag = TRUE;
 						rxchip_detect.first_check_flag = TRUE;
 						rxchip_detect.complete_check_times = 0;
+						AP_PostSystemEvent(SYSTEM_EVENT_POWERON_START_REC);
 					}
 					//XM_printf(">>>>>>>>>>>rxchip_detect.complete_check_times:%d\r\n", rxchip_detect.complete_check_times);
 					break;
@@ -1664,6 +1721,17 @@ void rxchip_set_check_flag(u8 val)
 	rxchip_detect.complete_check_flag = val;
 }
 
+
+/**
+ * rxchip_set_delay_data
+ *
+ * rxchip 延迟数据到屏幕显示
+ * 
+ */
+void rxchip_set_delay_data(u8_t val)
+{
+	Delay_rxchip_Data = val;
+}
 
 
 /**

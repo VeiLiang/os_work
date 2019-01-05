@@ -233,12 +233,10 @@ void XMSYS_Itu601Scaler_Task (void)
 				OS_Delay(10);
 				ISP_SCALAR_RUN; 
 	    	}
-            
 		}		
 		
 		if(itu601scaler_event & ITU601_ISP_SCALAR_EVENT_STOP)
 		{
-    		///break;
     		if(Itu601_Data_Status == TRUE) 
 			{
 				Itu601_Data_Status = FALSE;

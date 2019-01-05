@@ -537,6 +537,7 @@ VOID PhotoMenuOnKeyDown(XMMSG *msg)
 	XM_printf(">>>>>>>>>>>PhotoMenuOnKeyDown, msg->wp:%d\r\n", msg->wp);
     switch(msg->wp)
     {
+    	case VK_AP_FONT_BACK_SWITCH:
 		case VK_AP_MENU://进入或退出回放菜单
 			XM_printf(">>>VK_AP_MENU...\r\n");
 			XM_printf(">>>>>>>>PhotoMenuData->curpage:%d\r\n", PhotoMenuData->curpage);
@@ -626,11 +627,6 @@ VOID PhotoMenuOnKeyDown(XMMSG *msg)
 				XM_InvalidateWindow();
 				XM_UpdateWindow();
 			}
-            break;
-			
-        case VK_AP_FONT_BACK_SWITCH:
-			XM_printf(">>>VK_AP_FONT_BACK_SWITCH...\r\n");
-
             break;
 
         case VK_AP_UP://选中下一个item

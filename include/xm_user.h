@@ -114,13 +114,13 @@
 // XM_SYSTEMEVENT 的 WP 参数定义
 
 // 卡、文件系统事件
-#define SYSTEM_EVENT_CARD_DETECT							0		// SD卡准备中(SD卡检测中)
+#define SYSTEM_EVENT_CARD_DETECT						0		// SD卡准备中(SD卡检测中)
 																			//		"SD卡已插入，正在识别中"
-#define SYSTEM_EVENT_CARD_UNPLUG							1		// SD卡拔出事件
+#define SYSTEM_EVENT_CARD_UNPLUG						1		// SD卡拔出事件
 																			//		"SD卡已移除"
-#define SYSTEM_EVENT_CARD_INSERT_WRITE_PROTECT		2		// SD卡插入(写保护)
+#define SYSTEM_EVENT_CARD_INSERT_WRITE_PROTECT			2		// SD卡插入(写保护)
 																			//		"SD卡已写保护，请将'写保护'开关关闭"
-#define SYSTEM_EVENT_CARD_INSERT							3		// SD卡插入(读写允许)
+#define SYSTEM_EVENT_CARD_INSERT						3		// SD卡插入(读写允许)
 #define SYSTEM_EVENT_CARD_FS_ERROR						4		// SD卡插入,数据卡已识别(读写模式)，卡文件系统已安装
 																			//		"SD卡文件系统错误，请重新格式化"
 																			//		无法在数据卡上创建保存视频记录的目录， 
@@ -138,35 +138,41 @@
 // 显示外设接入、断开事件
 #define SYSTEM_EVENT_AVOUT_PLUGOUT						20		// AVOUT拔出
 #define SYSTEM_EVENT_AVOUT_PLUGIN						21		// AVOUT插入
-#define SYSTEM_EVENT_HDMI_PLUGIN							22		// HDMI设备插入
+#define SYSTEM_EVENT_HDMI_PLUGIN						22		// HDMI设备插入
 #define SYSTEM_EVENT_HDMI_PLUGOUT						23		// HDMI设备拔出
 #define SYSTEM_EVENT_BL_OFF								24		// 关闭背光
-#define SYSTEM_EVENT_BL_ON									25		// 开启背光
+#define SYSTEM_EVENT_BL_ON								25		// 开启背光
 		
 
 // 快捷按键事件
-#define SYSTEM_EVENT_ADJUST_BELL_VOLUME				30		// 快捷按键事件，调整铃声音量、开启、关闭
+#define SYSTEM_EVENT_ADJUST_BELL_VOLUME					30		// 快捷按键事件，调整铃声音量、开启、关闭
 #define SYSTEM_EVENT_ADJUST_MIC_VOLUME					31		// 快捷按键事件，调整录音音量、开启、关闭
 #define SYSTEM_EVENT_ONE_KEY_PROTECT					32		// 快捷按键事件，紧急录像(一键锁定)
-#define SYSTEM_EVENT_ONE_KEY_PHOTOGRAPH				33		// 快捷按键事件，一键拍照
+#define SYSTEM_EVENT_ONE_KEY_PHOTOGRAPH					33		// 快捷按键事件，一键拍照
 #define SYSTEM_EVENT_URGENT_RECORD						32		// 快捷按键事件，紧急录像(一键锁定)
 		
 // 系统电池事件
 #define SYSTEM_EVENT_MAIN_BATTERY						40		// 主电池变化事件
 #define SYSTEM_EVENT_BACKUP_BATTERY						41		// 备份电池变化事件
 #define SYSTEM_EVENT_SHUTDOWN_SOON                      42
+#define SYSTEM_EVENT_STOP_REC							43
+#define SYSTEM_EVENT_ONLY_STOP_REC						44
+#define SYSTEM_EVENT_CARBACKLINE_ENTER					45
+#define SYSTEM_EVENT_CARBACKLINE_EXIT					46
+#define SYSTEM_EVENT_START_REC							47
+#define SYSTEM_EVENT_POWERON_START_REC					48
 
 // USB拔插事件
 #define SYSTEM_EVENT_USB_DISCONNECT						50		// USB断开连接
-#define SYSTEM_EVENT_USB_CONNECT_CHARGE				51		// USB作为充电线使用
+#define SYSTEM_EVENT_USB_CONNECT_CHARGE					51		// USB作为充电线使用
 #define SYSTEM_EVENT_USB_CONNECT_UDISK					52		// USB已连接，作为其他设备的U盘使用
-#define SYSTEM_EVENT_USB_CONNECT_CAMERA				53		// USB已连接，作为其他设备的Camera输入使用
+#define SYSTEM_EVENT_USB_CONNECT_CAMERA					53		// USB已连接，作为其他设备的Camera输入使用
 
 // GPS北斗导航事件
 #define SYSTEM_EVENT_GPSBD_DISCONNECT					60		// GPSBD已断开
-#define SYSTEM_EVENT_GPSBD_CONNECT_ANTENNA_OPEN		61		// GPSBD已连接(天线未连接)
-#define SYSTEM_EVENT_GPSBD_CONNECT_ANTENNA_SHORT	62		// GPSBD已连接(天线短路)
-#define SYSTEM_EVENT_GPSBD_CONNECT_ANTENNA_OK		63		// GPSBD已连接(天线连接正常)
+#define SYSTEM_EVENT_GPSBD_CONNECT_ANTENNA_OPEN			61		// GPSBD已连接(天线未连接)
+#define SYSTEM_EVENT_GPSBD_CONNECT_ANTENNA_SHORT		62		// GPSBD已连接(天线短路)
+#define SYSTEM_EVENT_GPSBD_CONNECT_ANTENNA_OK			63		// GPSBD已连接(天线连接正常)
 #define SYSTEM_EVENT_GPSBD_CONNECT_LOCATE_OK			64		// GPSBD已定位
 
 

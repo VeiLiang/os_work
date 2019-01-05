@@ -47,6 +47,7 @@ extern unsigned char get_takephoto_flag(void);
 extern int CurrentPhotoMode;
 extern unsigned int DispDesktopMenu;
 extern unsigned int XMSYS_H264CodecGetCurrentVideoRecoringTime (void);
+extern struct _rxchip_video g_rxchp_video_param;
 
 typedef struct _tagICONSCHEME {
 	unsigned int	icon_scheme;
@@ -191,7 +192,6 @@ static ICONSCHEME icon_scheme;
 XMSYSTEMTIME rendervideotime;              //当前视频文件录制时间
 unsigned int rendervideo_start_ticket;		//当前视频文件已回放时间(减去开始时间)
 DWORD dispyear,dispmonth,dispday,disphour,dispminute, dispsecond; //当前视频文件显示时间
-extern u8_t ACC_Select;
 
 
 static int verify_icon_state (unsigned int dwIcon, unsigned int dwIconState)
@@ -257,8 +257,6 @@ static int verify_icon_state (unsigned int dwIcon, unsigned int dwIconState)
 	    case AP_ICON_V_LINE:
             break;
 	    case AP_ICON_H_LINE:
-            break;
-		case AP_ICON_ACC_SELECT:
             break;
         case AP_ICON_CH_AHD1:
             break;
@@ -394,39 +392,7 @@ static APPROMRES *GetIconResource (unsigned int dwIconType, unsigned int dwIcon,
         case  AP_ICON_H_LINE:
 			dwIconResource = AP_ID_ICON_H_LINE;
 			break;
-			
-        case AP_ICON_ACC_SELECT:
-            #if 0
-            if(Pre_Blue_Data && Camera_Data_signed) {
-                if(ACC_Select == 1)
-                    dwIconResource = AP_ID_ICON_CAMERA1_B;
-                else if(ACC_Select == 2)
-                    dwIconResource = AP_ID_ICON_CAMERA2_B;
-                else if(ACC_Select == 3)
-                    dwIconResource = AP_ID_ICON_CAMERA3_B;
-                else if(ACC_Select == 4)
-                    dwIconResource = AP_ID_ICON_CAMERA4_B;
-            }else {
-                if(ACC_Select == 1)
-                    dwIconResource = AP_ID_ICON_CAMERA1;
-                else if(ACC_Select == 2)
-                    dwIconResource = AP_ID_ICON_CAMERA2;
-                else if(ACC_Select == 3)
-                    dwIconResource = AP_ID_ICON_CAMERA3;
-                else if(ACC_Select == 4)
-                    dwIconResource = AP_ID_ICON_CAMERA4;
-            }
-            #endif
-            if(ACC_Select == 1)
-                dwIconResource = AP_ID_ICON_CAMERA1;
-            else if(ACC_Select == 2)
-                dwIconResource = AP_ID_ICON_CAMERA2;
-            else if(ACC_Select == 3)
-                dwIconResource = AP_ID_ICON_CAMERA3;
-            else if(ACC_Select == 4)
-                dwIconResource = AP_ID_ICON_CAMERA4;
-            break;
-
+	
 		case AP_ICON_CH_AHD1:
 			if(dwIconState==AP_ICON_DISPLAY_ON)
 			{
@@ -447,9 +413,6 @@ static APPROMRES *GetIconResource (unsigned int dwIconType, unsigned int dwIcon,
             }else {
                 dwIconResource = AP_ID_ICON_NOSIGNED_C;
             }
-            break;
-        case AP_ICON_BIAOZHI:
-            dwIconResource = AP_ID_ICON_BIAOSHI;
             break;
 			  
 	    case AP_ICON_HOME:
@@ -1081,6 +1044,60 @@ static void show_local_time (xm_osd_framebuffer_t framebuffer)
 	}
 }
 
+static void show_rx_parameter(xm_osd_framebuffer_t framebuffer)
+{
+	XM_IMAGE *image;
+	unsigned char str[128];
+	int size;
+	int i, count;
+	int x, y;
+
+	unsigned char bright = g_rxchp_video_param.brightness;
+	unsigned char contrast = g_rxchp_video_param.contrast;
+	unsigned char saturation = g_rxchp_video_param.saturation;
+	unsigned char hue = g_rxchp_video_param.hue;
+	unsigned char sharpness = g_rxchp_video_param.sharpness;
+	unsigned char ob = g_rxchp_video_param.ob;
+	unsigned char bw = g_rxchp_video_param.bw;
+
+	sprintf(str, "%d/%d/%d/%d/%d/%d/%d", bright, contrast, saturation, hue, sharpness, ob, bw);
+	count = strlen (str);
+	size = (count - 1) * DATETIME_CHAR_WIDTH + icon_scheme.space_width;
+
+	//x = icon_scheme.osd_w - size - icon_scheme.horz_space;//-200;
+	x = 20;
+	y = 500;
+	
+	for (i = 0; i < count; i++)
+	{
+		if (str[i] >= '0' && str[i] <= '9')
+		{
+			image = image_datatime_32[str[i] - '0'];	
+		}
+		else if(str[i] == ':')
+			image = image_datatime_32[10];
+		else if(str[i] == '/')
+			image = image_datatime_32[11];
+		else
+			image = NULL;
+		if(image)
+		{
+			XM_ImageBlendToFrameBuffer (
+					image,
+					0, 0,
+					image->width, image->height,
+					framebuffer,
+					x,
+					y
+					);
+			x += DATETIME_CHAR_WIDTH;
+		}
+		else
+		{
+			x += icon_scheme.space_width;
+		}
+	}
+}
 
 void Show_recoder_time(xm_osd_framebuffer_t framebuffer)
 {
@@ -2249,7 +2266,6 @@ static void display_photo_state_icons_scheme_1 (xm_osd_framebuffer_t framebuffer
 extern int Red_Location;
 int Camera_Data_signed_Pre = 0;
 //extern BOOL NO_Signed_Fail;
-extern u8_t pipmode;
 
 
 /**
@@ -2824,6 +2840,9 @@ void XM_IconDisplay (xm_osd_framebuffer_t framebuffer)
 				show_sd_status(framebuffer);
 				show_mode_icon(framebuffer);//模式图标显示
 				//display_record_state_icons_scheme_1 (framebuffer);//录像
+				#ifdef JLINK_DISABLE
+				show_rx_parameter(framebuffer);
+				#endif
 			}
 		    else
 		    {

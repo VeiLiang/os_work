@@ -155,7 +155,27 @@ void lcd_vcom_init(void)
 //IIC采用固定接口,参照gpioi2c.c文件
 #define RXCHIP_SENSOR0_RESET_PIN 	GPIO6
 #define RXCHIP_SENSOR1_RESET_PIN 	GPIO26
+#define RXCHIP_SDA_PIN				GPIO103
+#define RXCHIP_SCL_PIN				GPIO104
 
+
+void rxchip_iic_pin_init(void)
+{
+	unsigned int val;
+
+	// 第三组GPIO I2C
+	// 7116-SDA SD1_D2 ([9]	 sd1_d2	sd1_d2_pad	GPIO103	sd1_data2)
+	// 7116-SCL SD1_D3 ([10] sd1_d3	sd1_d3_pad	GPIO104	sd1_data3)
+	// pad_ctl9	
+	XM_lock();
+	val = rSYS_PAD_CTRL0A;
+	val &= ~( (0x03 << 0) | (0x03 << 2) );
+	rSYS_PAD_CTRL0A= val;
+	XM_unlock();
+
+	SetGPIOPadDirection (RXCHIP_SDA_PIN, euOutputPad);
+	SetGPIOPadDirection (RXCHIP_SCL_PIN, euOutputPad);	
+}
 
 void rxchip_reset_pin_init(void)
 {

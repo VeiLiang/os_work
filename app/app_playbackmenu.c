@@ -62,6 +62,7 @@ extern int get_curch_page_num(void);
 extern void set_video_curch_page_num(int val);
 extern void set_photo_curch_page_num(int val);
 extern void APP_SaveMenuData(void);
+extern void set_update_all_videolist_flag(u8_t flg);
 
 
 void reset_replay_menu_timeout(void)
@@ -109,7 +110,9 @@ static void Video_DeleteOneFileCallback(VOID *UserPrivate, UINT uKeyPressed)
 		{
 			if(uKeyPressed==VK_AP_MENU)
 			{
-				hVideoItem = AP_VideoItemGetVideoItemHandleEx(ReplayMenuData->videolist->videotype, item, ReplayMenuData->curch);
+				hVideoItem = XM_VideoItemGetVideoItemHandleEx(0,replay_ch,XM_FILE_TYPE_VIDEO,XM_VIDEOITEM_CLASS_BITMASK_NORMAL|XM_VIDEOITEM_CLASS_BITMASK_MANUAL,item,1);
+
+				//hVideoItem = AP_VideoItemGetVideoItemHandleEx(ReplayMenuData->videolist->videotype, item, ReplayMenuData->curch);
 				if(hVideoItem == NULL)
 				{
 					XM_printf(">>>>del error2 ..............\r\n");
@@ -259,7 +262,7 @@ VOID PlayBackMenuOnEnter(XMMSG *msg)
 		// 窗口已建立，当前窗口从栈中恢复
 		XM_printf(">>>>>>>>>>>>>>>>>play back menu Pull\n");
 	}
-    XM_SetTimer(XMTIMER_SETTINGVIEW, 500); //开启定时器
+    XM_SetTimer(XMTIMER_SETTINGVIEW, 1000); //开启定时器
 }
 
 VOID PlayBackMenuOnLeave(XMMSG *msg)
@@ -588,13 +591,14 @@ VOID PlayBackMenuOnKeyDown(XMMSG *msg)
 	XM_printf(">>>>>>>>>>>PlayBackMenuOnKeyDown, msg->wp:%d\r\n", msg->wp);
     switch(msg->wp)
     {
-        case REMOTE_KEY_MENU:
+		case REMOTE_KEY_MENU:
 		case VK_AP_MENU://进入或退出回放菜单
 			XM_printf(">>>VK_AP_MENU...\r\n");
 			XM_printf(">>>>>>>>ReplayMenuData->curpage:%d\r\n", ReplayMenuData->curpage);
 
 			if( (ReplayMenuData->type==TYPE_VIDEO) && (Video_First_Enter_Type==TYPE_VIDEO) )
 			{//视频选项
+				set_update_all_videolist_flag(FALSE);//重新更新所有
 				ReplayMenuData->videolist->nPageNum = ReplayMenuData->curpage;
 				XM_PullWindow(0);
 			}
@@ -768,13 +772,9 @@ VOID PlayBackMenuOnTimer (XMMSG *msg)
 {
 	XM_printf(">>>>>>>>PlayBackMenuOnTimer \n");
 	replay_menu_timeout++;
-	if(replay_menu_timeout>=20)
+	if(replay_menu_timeout>=10)
 	{
 		XM_PullWindow(0);
-	}
-	else if(get_parking_trig_status() != 0 && AP_GetMenuItem(APPMENUITEM_PARKING_LINE))
-	{
-	    XM_PullWindow(0);//返回桌面显示倒车界面
 	}
 }
 

@@ -510,7 +510,8 @@ INT32 data_tran_over(SDMMC_INFO * sdmmc_info)
 
 	do
 	{
-		if( (XM_GetTickCount() - ticket) > SDMMC_DATA_TIMEOUT_MS )
+		//if( (XM_GetTickCount() - ticket) > SDMMC_DATA_TIMEOUT_MS )
+		if( (XM_GetTickCount() - ticket) > 2*SDMMC_DATA_TIMEOUT_MS )
 		{
 			DEBUG_MSG("data_tran_over is timeout and ChIP is %d\n", sdmmc_info->ChipSel);
 			return 1;
@@ -530,7 +531,10 @@ INT32 data_tran_over(SDMMC_INFO * sdmmc_info)
 		}
 	}while (!(tt & 0x00000008));
 
-	if( (tt&0xBFC2) != 0 )
+	// 20181228 bit 10 –Data starvation-by-host timeout (HTO) (0x400) 会导致以下条件满足，导致返回错误。
+	// 实际上HTO仅用来警告FIFO已被填满(读)或者FIFO已取空(写)的标志，不是异常
+	//if( (tt&0xBFC2) != 0 )
+	if( (tt&0xBBC2) != 0 )
 	{
 		DEBUG_MSG("This rSDMMC_RINTSTS = 0x%x and ChIP is %d\n", tt, sdmmc_info->ChipSel);
 
@@ -5434,7 +5438,7 @@ void SDCard_Module_Init(void)
 	sys_soft_reset (softreset_card);
 	sys_clk_enable (sdc_hclk_enable);
 
-	sdcard_power_on_reset ();
+	sdcard_power_on_reset (); // 20181112 放开对卡的电源的控制
 
 #if SDMMC_DEV_COUNT > 1
 	sys_clk_disable (sdc1_hclk_enable);

@@ -241,9 +241,10 @@ int EndDefaultParamProgress (void *private_data)
 		XM_SetLocalTime(&defaulttime);
 		AppMenuData.update_date_falg = 1;
 	}
-
+	//更新rx参数
 	XM_RxchipDisplayInit();
 
+	//更新VCOMDC值
 	set_pwm_duty(AP_GetVCOM_PWM());
 	APP_SaveMenuData();
 }

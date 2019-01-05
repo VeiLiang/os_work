@@ -89,8 +89,6 @@ enum {
     AP_ID_ICON_RECORD_LIST,			//36
     AP_ID_ICON_RECORD_LIST_PRESS,	//37
     
-    //±Í ∂
-    AP_ID_ICON_BIAOSHI,				//38
     //…„œÒÕ∑
     AP_ID_ICON_CAMERA1,				//39
     AP_ID_ICON_CAMERA2,				//40

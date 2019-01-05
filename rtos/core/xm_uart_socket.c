@@ -1268,25 +1268,22 @@ void XMSYS_MessageSocketInit (void)
 	dev = XM_UART_DEV_2;		// ASIC使用UART 2调试 LCD
 	
 	uart_socket_dev = xm_uart_open (dev, 
-											  XM_UART_STOPBIT_1,
-											  XM_UART_PARITY_DISABLE,
-											  XM_UART_MODE_TR,
-											  57600,
-											  512,
-											  &err);
+									XM_UART_STOPBIT_1,
+									XM_UART_PARITY_DISABLE,
+									XM_UART_MODE_TR,
+									57600,
+									512,
+									&err);
 	if(uart_socket_dev == NULL)
 	{
 		printf ("open uart socket failed, err_code=%d\n", err);
 		return;
 	}
 											  
-											  
 	// 创建一个接收串口包的任务。
 	OS_CREATETASK (&TCB_UART_socket_Task, "UART_socket", UART_socket_Task, XMSYS_UART_SOCKET_TASK_PRIORITY, StackUART_socket );	
 	
-	
 	// 正常运行 isp
 	//arkn141_isp();
-	
 }
 

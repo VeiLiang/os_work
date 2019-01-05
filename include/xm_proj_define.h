@@ -19,7 +19,7 @@
 	extern "C"{
 #endif
 		
-		
+//编译工具中的定义大于文件中的宏定义		
 #define	_XMSYS_APP_SUPPORT_
 
 #define	CONFIG_ARKN141_ASIC
@@ -103,7 +103,7 @@
 		
 		
 // ****** UVC Camera 支持宏定义 *******			
-#define	_XMSYS_UVC_CAMERA_TYPE_ISO_				1		// ISO模式UVC Camera实现
+#define	_XMSYS_UVC_CAMERA_TYPE_ISO_					1		// ISO模式UVC Camera实现
 #define	_XMSYS_UVC_CAMERA_TYPE_BULK_				2		// Bulk模式UVC Camera实现 
 
 #define	_XMSYS_UVC_CAMERA_TYPE_						_XMSYS_UVC_CAMERA_TYPE_BULK_		
@@ -112,10 +112,10 @@
 		
 // IIS ADC 0 传输方式定义
 // 使用DMA模式传输ADC数据		
-#define	_XMSYS_IISADC_0_TYPE_DMA_			0	
+#define	_XMSYS_IISADC_0_TYPE_DMA_				0	
 // 使用中断模式传输ADC数据
-#define	_XMSYS_IISADC_0_TYPE_INT_			1
-#define	_XMSYS_IISADC_0_TYPE_				_XMSYS_IISADC_0_TYPE_INT_
+#define	_XMSYS_IISADC_0_TYPE_INT_				1
+#define	_XMSYS_IISADC_0_TYPE_					_XMSYS_IISADC_0_TYPE_INT_
 //#define	_XMSYS_IISADC_0_TYPE_				_XMSYS_IISADC_0_TYPE_DMA_		
 		
 #define	_XMSYS_RTC_HARDWARE_					0								// 使用硬件RTC时钟作为RTC时钟 
@@ -195,8 +195,8 @@
 #define	XMSYS_SENSOR_COUNT							1
 
 // 通道0摄像头帧字节大小定义
-#define	XMSYS_CH0_SENSOR_FRAME_WIDTH					1920
-#define	XMSYS_CH0_SENSOR_FRAME_HEIGHT				1080
+#define	XMSYS_CH0_SENSOR_FRAME_WIDTH				1280
+#define	XMSYS_CH0_SENSOR_FRAME_HEIGHT				720
 
 #define	XMSYS_ITU656_IN_SUPPORT					    0
 
@@ -207,11 +207,11 @@
 
 // 摄像头帧字节大小定义		
 // 通道0 （1080P）
-#define	XMSYS_CH0_SENSOR_FRAME_WIDTH					640//1920
+#define	XMSYS_CH0_SENSOR_FRAME_WIDTH				640//1920
 #define	XMSYS_CH0_SENSOR_FRAME_HEIGHT				480//1080
 
 // 通道1（第二个摄像头D1 NTSC制式)
-#define	XMSYS_CH1_SENSOR_FRAME_WIDTH					720
+#define	XMSYS_CH1_SENSOR_FRAME_WIDTH				720
 #define	XMSYS_CH1_SENSOR_FRAME_HEIGHT				480
 
 #define	XMSYS_ITU656_IN_SUPPORT						 0

@@ -182,21 +182,10 @@ static unsigned int t_create, t_scalar, t_rotate, t_icon, t_close;
 static unsigned int display_count;
 #endif
 BOOL First_ShowData = FALSE;
-uchar perpipmode;
-extern uchar pipmode;
-extern u8_t ACC_Select;
 extern uchar sensor2reverse;
 extern uchar sensor1reverse;
-void SetPerpipmode(uchar mode)
-{
-	perpipmode	= mode;
-}
 
-uchar GetPerpipmode()
-{
-	return perpipmode;
-}
-static void video_display (XMSYSSENSORPACKET *video_framepacket)
+static void video_display(XMSYSSENSORPACKET *video_framepacket)
 {
 	unsigned int osd_w, osd_h;
     
@@ -606,10 +595,6 @@ static void video_display (XMSYSSENSORPACKET *video_framepacket)
 				break;
 		}
 		#endif
-		
-		//if(GetReversingSta() == FALSE)
-		if(sensor2reverse == 0 && sensor1reverse == 0)
-		SetPerpipmode(pipmode);
 
 		if(AP_GetMenuItem(APPMENUITEM_PARKMONITOR) == MOT_ON)
 		{
@@ -694,11 +679,8 @@ char *isp_scalar_get_frame_buffer (unsigned int frame_id, unsigned int frame_siz
 
 // 视频任务主函数
 
-extern u8_t ACC_Select ;
-u8_t ACC_Select_Pre = 0;
-extern u8_t Delay_NVP6214_Data;
+extern u8_t Delay_rxchip_Data;
 extern BOOL Close_Audio_Sound;
-extern unsigned int buzz_time;
 void XMSYS_VideoTask (void)
 {
 	int count;
@@ -722,20 +704,12 @@ void XMSYS_VideoTask (void)
 
 		if(video_event & (XMSYS_VIDEO_EVENT_TICKET) )
 		{
-
 			// 录像过程中用于LCD显示的缩放帧
 			OS_Use (&video_task_semaphore);
 
-			#if 0//去掉这个控制,
-			if(OSTimeGet() - buzz_time > 100)
-			{
-				XM_lock ();	
-				SetGPIOPadData (GPIO30, euDataLow);
-				XM_unlock();
-			}
-			#endif
-			
 			video_framepacket = NULL;
+
+			#if 0
 			if(assembly_mode == XMSYS_ASSEMBLY_MODE_FRONT_ONLY)
 			{
 				video_framepacket = XMSYS_SensorGetCurrentPacket(0);
@@ -744,14 +718,17 @@ void XMSYS_VideoTask (void)
 			{
 				video_framepacket = XMSYS_SensorGetCurrentPacket (1);
 			}
-			if((video_framepacket) &&(Delay_NVP6214_Data == 0)/*&&(Delay_LCD_Rotate == 0)*/)//video_framepacket
+			#endif
+			video_framepacket = XMSYS_SensorGetCurrentPacket(0);
+
+			//XM_printf(">>>>Delay_rxchip_Data:%d\r\n", Delay_rxchip_Data);
+			if((video_framepacket) &&(Delay_rxchip_Data == 0)/*&&(Delay_LCD_Rotate == 0)*/)//video_framepacket
 			{
 				// ODS层开启时,  执行视频显示
 				//if(XM_GetFmlDeviceCap(DEVCAP_OSD)&&PowerOnShowLogo)//logo显示完再开视频
 				//Close_Audio_Sound: 在PR2000 检测到数据之前关机,LCD_set_enable会导致背光开启
 				if(XM_GetFmlDeviceCap(DEVCAP_OSD)&&PowerOnShowLogo&& Close_Audio_Sound)//logo显示完再开视频
 				{
-
 					if(skip_frames_to_on_lcd == 1)
 					{
 						LCD_set_enable (1);
@@ -766,27 +743,21 @@ void XMSYS_VideoTask (void)
 					if(skip_frames_to_on_lcd > 0)
 						skip_frames_to_on_lcd --;
 				}
-			}else {
-			    if(Delay_NVP6214_Data) {
-                   // if(ACC_Select_Pre != ACC_Select)
-                        //HW_LCD_BackLightOff();
-    			    Delay_NVP6214_Data ++;
+			}
+			else 
+			{
+			    if(Delay_rxchip_Data) 
+				{
+    			    Delay_rxchip_Data ++;
 
-                    if(Delay_NVP6214_Data > 15)
+                    if(Delay_rxchip_Data > 5)
 					{
                         skip_frames_to_on_lcd = 1;
-                        Delay_NVP6214_Data = 0;
-                        ACC_Select_Pre = AP_GetAHD_Select();
+                        Delay_rxchip_Data = 0;
                    }
                 }
                 XMSYS_SensorResetCurrentPacket(0);// 把当前显示最后一针数据清空
-                if((ACC_Select_Pre != ACC_Select)&& First_ShowData) {
-                    ACC_Select_Pre = ACC_Select;
-                    if(AP_GetBlue())
-                        ShowLogo_Logo(ROM_T18_COMMON_DESKTOP_BLUE_JPG,ROM_T18_COMMON_DESKTOP_BLUE_JPG_SIZE,1);
-                    else 
-                        ShowLogo_Logo(ROM_T18_COMMON_DESKTOP_BLACK_JPG,ROM_T18_COMMON_DESKTOP_BLACK_JPG_SIZE,1);
-                }
+				ShowLogo_Logo(ROM_T18_COMMON_DESKTOP_BLACK_JPG,ROM_T18_COMMON_DESKTOP_BLACK_JPG_SIZE,1);
             }
 			OS_Unuse (&video_task_semaphore);
 		}

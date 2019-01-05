@@ -748,49 +748,6 @@ static void VoicePromptsMenuOptionCB (VOID *lpUserData, int dMenuOptionSelect)
 	AP_SaveMenuData (&AppMenuData);
 }
 
-VOID SettingViewOnKeyRepeatDown(XMMSG *msg)
-{
-    SETTINGVIEWDATA *settingViewData;
-	XMRECT rc;
-
-	settingViewData = (SETTINGVIEWDATA *)XM_GetWindowPrivateData (XMHWND_HANDLE(SettingView));
-	if(settingViewData == NULL)
-		return;
-	
-    SETTINGMENUDATA *SettingData = settingViewData->SettingData;
-	XM_GetWindowRect (XMHWND_HANDLE(SettingView), &rc);
-    Delay_Close_View = 0;
-    switch(msg->wp)
-    {
-        case VK_AP_UP:
-        case REMOTE_KEY_RIGHT:
-            #if 0
-            if((nCurItem == SETTING_MENU_VOL) &&(AppMenuData.VolOnOff)&&(ACC_Select != 4)) {
-                if(AppMenuData.Audio_PWM < 20)
-                    AppMenuData.Audio_PWM ++;
-                //AppMenuData.Audio_PWM = SettingData->nVolOnOff;
-                HW_Auido_SetLevel(AppMenuData.Audio_PWM);
-                XM_InvalidateWindow ();
-			    XM_UpdateWindow ();
-            }
-            #endif
-            break;
-        case VK_AP_DOWN:
-        case REMOTE_KEY_LEFT:
-            #if 0
-            if((nCurItem == SETTING_MENU_VOL) &&(AppMenuData.VolOnOff)&&(ACC_Select != 4)) {
-                if(AppMenuData.Audio_PWM > 0)
-                    AppMenuData.Audio_PWM --;
-                //AppMenuData.Audio_PWM = SettingData->nVolOnOff;
-                HW_Auido_SetLevel(AppMenuData.Audio_PWM);
-                XM_InvalidateWindow ();
-			    XM_UpdateWindow ();
-            }
-            #endif
-            break;
-
-    }
-}
 
 void submenuNextCyc(XMMSG *msg,SETTINGVIEWDATA *settingViewData)
 {
@@ -1148,6 +1105,10 @@ static void SettingMenuKeyDownClick(XMMSG *msg,SETTINGVIEWDATA *settingViewData,
 
 VOID SettingViewOnKeyDown (XMMSG *msg)
 {
+    if(AP_GetMenuItem(APPMENUITEM_POWER_STATE) == POWER_STATE_OFF)
+    {
+        return;
+    }
 	SETTINGVIEWDATA *settingViewData;
 	XMRECT rc;
 
@@ -1292,8 +1253,80 @@ VOID SettingViewOnKeyDown (XMMSG *msg)
 	}
 }
 
+/********************************************************************************
+1.这里把重复按转化为短按信息,只有满足以下按键信息的才转,其他不做响应.
+2.按键信息要设为重复按类型,如 {VK_AP_DOWN,				XMKEY_REPEAT},
+3.要加速长按的响应速度,可以修改重复按的delay_time时间,但不能比短按小
+*******************************************************************************/
+VOID SettingViewOnKeyRepeatDown(XMMSG *msg)
+{
+    if(AP_GetMenuItem(APPMENUITEM_POWER_STATE) == POWER_STATE_OFF)
+    {
+        return;
+    }
+	switch(msg->wp)
+	{
+          	
+		case VK_AP_UP://+键
+        case REMOTE_KEY_RIGHT:
+        case REMOTE_KEY_LEFT:
+	    case VK_AP_DOWN://-键
+             SettingViewOnKeyDown(msg);
+        break;
+
+        default:
+        break;          
+    }
+#if 0
+    SETTINGVIEWDATA *settingViewData;
+	XMRECT rc;
+
+	settingViewData = (SETTINGVIEWDATA *)XM_GetWindowPrivateData (XMHWND_HANDLE(SettingView));
+	if(settingViewData == NULL)
+		return;
+	
+    SETTINGMENUDATA *SettingData = settingViewData->SettingData;
+	XM_GetWindowRect (XMHWND_HANDLE(SettingView), &rc);
+    Delay_Close_View = 0;
+    switch(msg->wp)
+    {
+        case VK_AP_UP:
+        case REMOTE_KEY_RIGHT:
+            #if 0
+            if((nCurItem == SETTING_MENU_VOL) &&(AppMenuData.VolOnOff)&&(ACC_Select != 4)) {
+                if(AppMenuData.Audio_PWM < 20)
+                    AppMenuData.Audio_PWM ++;
+                //AppMenuData.Audio_PWM = SettingData->nVolOnOff;
+                HW_Auido_SetLevel(AppMenuData.Audio_PWM);
+                XM_InvalidateWindow ();
+			    XM_UpdateWindow ();
+            }
+            #endif
+            break;
+        case VK_AP_DOWN:
+        case REMOTE_KEY_LEFT:
+            #if 0
+            if((nCurItem == SETTING_MENU_VOL) &&(AppMenuData.VolOnOff)&&(ACC_Select != 4)) {
+                if(AppMenuData.Audio_PWM > 0)
+                    AppMenuData.Audio_PWM --;
+                //AppMenuData.Audio_PWM = SettingData->nVolOnOff;
+                HW_Auido_SetLevel(AppMenuData.Audio_PWM);
+                XM_InvalidateWindow ();
+			    XM_UpdateWindow ();
+            }
+            #endif
+            break;
+
+    }
+#endif
+}
+
 VOID SettingViewOnKeyUp (XMMSG *msg)
 {
+    if(AP_GetMenuItem(APPMENUITEM_POWER_STATE) == POWER_STATE_OFF)
+    {
+        return;
+    }
 	SETTINGVIEWDATA *settingViewData;
 
 	settingViewData = (SETTINGVIEWDATA *)XM_GetWindowPrivateData (XMHWND_HANDLE(SettingView));

@@ -87,7 +87,7 @@ static void rePlay_DrawVSlider(HANDLE hWnd,XMRECT *rc,unsigned int upBgcolor,uns
 // 打开视频播放视图
 VOID AP_OpenVideoView(BYTE mode, WORD wVideoFileIndex)
 {
-	XM_PushWindowEx(XMHWND_HANDLE(VideoView), (mode << 24) | wVideoFileIndex);
+	XM_JumpWindowEx(XMHWND_HANDLE(VideoView), (mode << 24) | wVideoFileIndex, XM_JUMP_POPDESKTOP);
 }
 
 
@@ -115,8 +115,10 @@ static int get_video_info(unsigned int mode, unsigned int item, VIDEOVIEWDATA *v
 	{
 		replay_ch = XM_VIDEO_CHANNEL_1;
 	}	
+	XM_printf(">>>>get_video_info,item:%d\r\n", item);
+	//hVideoItem = AP_VideoItemGetVideoItemHandleEx((BYTE)mode, item, replay_ch);
+	hVideoItem = XM_VideoItemGetVideoItemHandleEx(0,replay_ch,XM_FILE_TYPE_VIDEO,XM_VIDEOITEM_CLASS_BITMASK_NORMAL|XM_VIDEOITEM_CLASS_BITMASK_MANUAL,item,1);
 	
-	hVideoItem = AP_VideoItemGetVideoItemHandleEx((BYTE)mode, item, replay_ch);
 	if(hVideoItem == NULL)
 		return -1;
 	
@@ -279,11 +281,10 @@ static VOID VideoViewOnLeave (XMMSG *msg)
 {
 	XM_printf(">>>>>>>>>>>>>>>VideoViewOnLeave, msg->wp:%x, msg->lp:%x\r\n", msg->wp, msg->lp);
 	
-	
 	XM_KillTimer (XMTIMER_VIDEOVIEW);//删除定时器
-
 	if (msg->wp == 0)
 	{
+		XMSYS_H264CodecRecorderStart();
 		// 窗口退出，彻底摧毁。
 		// 获取私有数据句柄
 		VIDEOVIEWDATA *videoViewData = (VIDEOVIEWDATA *)XM_GetWindowPrivateData(XMHWND_HANDLE(VideoView));
@@ -299,7 +300,7 @@ static VOID VideoViewOnLeave (XMMSG *msg)
 		
 		// 关闭视频输出(OSD 0层关闭)
 		XM_osd_framebuffer_release (0, XM_OSD_LAYER_0);
-		XMSYS_H264CodecRecorderStart();
+		
 		XM_printf ("VideoView Exit\n");
 	}
 	else
@@ -574,13 +575,13 @@ static VOID VideoViewOnKeyDown(XMMSG *msg)
 				return;
 			}
 		    XMSYS_H264CodecPlayerStop();
-            XM_PullWindow(0);
+            //XM_PullWindow(0);
+            XM_JumpWindowEx(XMHWND_HANDLE(VideoListView), 0, 0);
 			break;
 
 		default:
 			break;
 	}
-
 }
 
 
