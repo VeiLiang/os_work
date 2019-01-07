@@ -19,7 +19,6 @@
 #include "system_check.h"
 #include "xm_h264_codec.h"
 #include "gpio.h"
-
 #include "app_imageloader.h"
 
 DWORD gcur_ticket;
@@ -514,7 +513,7 @@ VOID VideoListViewOnPaint(XMMSG *msg)
 
 				imagestride = w;
 				imagestride *= 4;
-
+				
 				lpImage = (XM_IMAGE *)kernel_malloc (imagestride * h + sizeof(XM_IMAGE) - 4);
 				//thumb_image = (unsigned char *)kernel_malloc (yuvstride * h * 3/2);
 
@@ -635,7 +634,7 @@ VOID VideoListViewOnPaint(XMMSG *msg)
 			y=(XMCOORD)(y + Thumb_height+Thumb_Vert_Interval+50);
 		}
 	}
-
+	
 	XM_SetWindowAlpha (hWnd, (unsigned char)old_alpha);
 }
 
